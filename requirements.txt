@@ -21,6 +21,7 @@ email-validator>=2.1.0
 # Utilitários
 python-dotenv>=1.0.0
 colorama>=0.4.6
+requests>=2.32.0
 
 # Desenvolvimento (opcional)
 # Flask-DebugToolbar>=0.15.1
