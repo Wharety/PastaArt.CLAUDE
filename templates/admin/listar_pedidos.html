@@ -1,0 +1,874 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gerenciar Pedidos - Painel Administrativo{% endblock %}
+
+{% block extra_head %}
+<style>
+.error-text {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+}
+
+.warning-text {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+}
+
+.modal-body ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.modal-body li {
+    margin: 5px 0;
+    color: #666;
+}
+
+/* Estilos para organização por cliente */
+.section-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.selected-count {
+    font-weight: 600;
+    color: #495057;
+}
+
+.select-all-container {
+    margin-top: 0.5rem;
+}
+
+.select-all-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #495057;
+}
+
+.select-all-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.cliente-section {
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cliente-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.cliente-info {
+    flex: 1;
+}
+
+.cliente-nome {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cliente-details {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.cliente-email, .cliente-telefone {
+    font-size: 0.9rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.cliente-stats {
+    text-align: right;
+}
+
+.pedidos-count {
+    background-color: #007bff;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.pedidos-cliente {
+    padding: 1rem;
+}
+
+.order-card {
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.order-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.order-selection {
+    flex-shrink: 0;
+}
+
+.pedido-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.order-info {
+    flex: 1;
+}
+
+.order-info h4 {
+    margin: 0 0 0.25rem 0;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+.order-date {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .section-title-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .bulk-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .cliente-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .cliente-details {
+        justify-content: center;
+    }
+    
+    .cliente-stats {
+        text-align: center;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .filters-form {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <div class="page-title-section">
+            <h1 class="admin-page-title">
+                <i class="fas fa-shopping-cart"></i>
+                Pedidos
+            </h1>
+            <p class="admin-page-subtitle">Gerencie todos os pedidos da sua loja</p>
+        </div>
+        
+        <div class="page-actions">
+            <a href="{{ url_for('admin.lixeira_pedidos') }}" class="btn btn-outline btn-small">
+                <i class="fas fa-trash"></i>
+                Lixeira ({{ total_pedidos_removidos if total_pedidos_removidos else 0 }})
+            </a>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas Rápidas -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-list"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_pedidos }}</h3>
+            <p>Total de Pedidos</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-day"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ pedidos_hoje }}</h3>
+            <p>Pedidos Hoje</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ pedidos|selectattr('status', 'equalto', 'pendente')|list|length }}</h3>
+            <p>Pendentes</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ pedidos|selectattr('status', 'equalto', 'concluido')|list|length }}</h3>
+            <p>Concluídos</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="admin-section">
+    <div class="section-header">
+        <h2 class="section-title">Filtros</h2>
+    </div>
+    
+    <div class="filters-container">
+        <form method="GET" action="{{ url_for('admin.listar_pedidos') }}" class="filters-form">
+            <div class="filter-group">
+                <label for="cliente_nome">Cliente:</label>
+                <input type="text" 
+                       name="cliente_nome" 
+                       id="cliente_nome" 
+                       class="form-control" 
+                       placeholder="Digite o nome do cliente"
+                       value="{{ cliente_nome_filter or '' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="status">Status:</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="">Todos os Status</option>
+                    <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="preparando" {% if status_filter == 'preparando' %}selected{% endif %}>Preparando</option>
+                    <option value="pronto" {% if status_filter == 'pronto' %}selected{% endif %}>Pronto</option>
+                    <option value="entregando" {% if status_filter == 'entregando' %}selected{% endif %}>Entregando</option>
+                    <option value="concluido" {% if status_filter == 'concluido' %}selected{% endif %}>Concluído</option>
+                    <option value="cancelado" {% if status_filter == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="data">Período:</label>
+                <select name="data" id="data" class="form-control">
+                    <option value="">Todos os Períodos</option>
+                    <option value="hoje" {% if data_filter == 'hoje' %}selected{% endif %}>Hoje</option>
+                    <option value="semana" {% if data_filter == 'semana' %}selected{% endif %}>Última Semana</option>
+                </select>
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i>
+                    Filtrar
+                </button>
+                <a href="{{ url_for('admin.listar_pedidos') }}" class="btn btn-outline">
+                    <i class="fas fa-times"></i>
+                    Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Pedidos -->
+<div class="admin-section">
+    <div class="section-header">
+        <div class="section-title-row">
+            <h2 class="section-title">Lista de Pedidos ({{ pedidos|length }})</h2>
+            <div class="section-actions">
+                <div class="cliente-toggle-actions">
+                    <span class="cliente-status" id="clienteStatus">
+                        <i class="fas fa-info-circle"></i> 
+                        <span id="clienteStatusText">Todos expandidos</span>
+                    </span>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="expandAllClientes()" title="Expandir todos os clientes">
+                        <i class="fas fa-expand-alt"></i> Expandir Todos
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="collapseAllClientes()" title="Colapsar todos os clientes">
+                        <i class="fas fa-compress-alt"></i> Colapsar Todos
+                    </button>
+                </div>
+                <div class="bulk-actions" id="bulkActions" style="display: none;">
+                    <span class="selected-count">0 pedidos selecionados</span>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="removeSelectedPedidos()">
+                        <i class="fas fa-archive"></i> Remover Selecionados
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="clearSelection()">
+                        <i class="fas fa-times"></i> Limpar Seleção
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if pedidos %}
+    <!-- Agrupar pedidos por cliente -->
+    {% set clientes = {} %}
+    {% for pedido in pedidos %}
+        {% set cliente_id = pedido.usuario.id %}
+        {% if cliente_id not in clientes %}
+            {% set _ = clientes.update({cliente_id: {'usuario': pedido.usuario, 'pedidos': []}}) %}
+        {% endif %}
+        {% set _ = clientes[cliente_id]['pedidos'].append(pedido) %}
+    {% endfor %}
+    
+    <div class="orders-container">
+        {% for cliente_id, cliente_data in clientes.items() %}
+        <div class="cliente-section" data-cliente-id="{{ cliente_id }}">
+            <div class="cliente-header">
+                <div class="cliente-info">
+                    <div class="cliente-header-main">
+                        <button type="button" class="cliente-toggle-btn" onclick="toggleCliente('{{ cliente_id }}')">
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <h3 class="cliente-nome">
+                            <i class="fas fa-user"></i>
+                            {{ cliente_data.usuario.nome }}
+                        </h3>
+                    </div>
+                    <div class="cliente-details">
+                        <span class="cliente-email">
+                            <i class="fas fa-envelope"></i> {{ cliente_data.usuario.email }}
+                        </span>
+                        {% if cliente_data.usuario.telefone %}
+                        <span class="cliente-telefone">
+                            <i class="fas fa-phone"></i> {{ cliente_data.usuario.telefone }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="cliente-stats">
+                    <span class="pedidos-count">{{ cliente_data.pedidos|length }} pedido(s)</span>
+                </div>
+            </div>
+            
+            <div class="pedidos-cliente">
+                {% for pedido in cliente_data.pedidos %}
+                <div class="order-card" data-pedido-id="{{ pedido.id }}">
+                    <div class="order-header">
+                        <div class="order-selection">
+                            <input type="checkbox" 
+                                   class="pedido-checkbox" 
+                                   value="{{ pedido.id }}"
+                                   onchange="updateSelection()">
+                        </div>
+                                                 <div class="order-info">
+                             <h4>Pedido #{{ pedido.numero_pedido }}</h4>
+                             <p class="order-date">{{ pedido.data_pedido.strftime('%d/%m/%Y às %H:%M') }}</p>
+                         </div>
+                
+                <div class="order-status">
+                    <span class="status-badge status-{{ pedido.status }}">
+                        {% if pedido.status == 'pendente' %}
+                            <i class="fas fa-clock"></i>
+                        {% elif pedido.status == 'preparando' %}
+                            <i class="fas fa-cog"></i>
+                        {% elif pedido.status == 'pronto' %}
+                            <i class="fas fa-check"></i>
+                        {% elif pedido.status == 'entregando' %}
+                            <i class="fas fa-truck"></i>
+                        {% elif pedido.status == 'concluido' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif pedido.status == 'cancelado' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                        {{ pedido.status|title }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="order-details">
+                <div class="order-items-p">
+                    <h4>Itens do Pedido</h4>
+                    {% for item in pedido.itens %}
+                    <div class="order-item">
+                        <div class="item-info">
+                            <span class="item-name">{{ item.doce.nome }}</span>
+                            <span class="item-quantity">{{ item.quantidade }}x</span>
+                        </div>
+                        <div class="item-price">
+                            R$ {{ "%.2f"|format(item.preco_total) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>R$ {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>R$ {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-actions">
+                <a href="{{ url_for('admin.detalhes_pedido', pedido_id=pedido.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i>
+                    Ver Detalhes
+                </a>
+                
+                {% if pedido.status != 'cancelado' and pedido.status != 'concluido' %}
+                <div class="status-update">
+                    <form method="POST" action="{{ url_for('admin.atualizar_status_pedido', pedido_id=pedido.id) }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
+                            <option value="pendente" {% if pedido.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                            <option value="preparando" {% if pedido.status == 'preparando' %}selected{% endif %}>Preparando</option>
+                            <option value="pronto" {% if pedido.status == 'pronto' %}selected{% endif %}>Pronto</option>
+                            <option value="entregando" {% if pedido.status == 'entregando' %}selected{% endif %}>Entregando</option>
+                            <option value="concluido" {% if pedido.status == 'concluido' %}selected{% endif %}>Concluído</option>
+                            <option value="cancelado" {% if pedido.status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                        </select>
+                    </form>
+                </div>
+                {% endif %}
+                
+                <button type="button" 
+                        class="btn btn-danger btn-sm"
+                        onclick="checkDeletePedidoPossibility('{{ pedido.id }}', '{{ pedido.numero_pedido }}')"
+                        title="Excluir Pedido">
+                    <i class="fas fa-trash"></i>
+                    Excluir
+                                 </button>
+             </div>
+         </div>
+         {% endfor %}
+         </div>
+     </div>
+     {% endfor %}
+     </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3>Nenhum pedido encontrado</h3>
+        <p>Não há pedidos que correspondam aos filtros selecionados.</p>
+        <a href="{{ url_for('admin.listar_pedidos') }}" class="btn btn-outline">
+            <i class="fas fa-times"></i>
+            Limpar Filtros
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Auto-submit do formulário de status
+document.querySelectorAll('select[name="status"]').forEach(select => {
+    select.addEventListener('change', function() {
+        if (this.value) {
+            this.form.submit();
+        }
+    });
+});
+
+// Animação dos cards de pedidos
+const orderCards = document.querySelectorAll('.order-card');
+orderCards.forEach((card, index) => {
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, index * 100);
+});
+
+// Adicionar animação inicial
+orderCards.forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.3s ease';
+});
+
+// Verificar se o pedido pode ser excluído
+async function checkDeletePedidoPossibility(pedidoId, pedidoNumber) {
+    try {
+        // Fazer requisição AJAX
+        const response = await fetch(`/admin/pedidos/${pedidoId}/check-delete`);
+        const data = await response.json();
+        
+        if (data.can_delete) {
+            // Pode excluir - mostrar modal de confirmação
+            const confirmed = await showConfirm(
+                `Tem certeza que deseja excluir o pedido ${pedidoNumber}?\n\nEsta ação não pode ser desfeita.`,
+                'Confirmar Exclusão',
+                'fas fa-trash'
+            );
+            
+            if (confirmed) {
+                // Criar formulário para exclusão
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/pedidos/${pedidoId}/excluir`;
+                
+                // Adicionar CSRF token
+                const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        } else {
+            // Não pode excluir - mostrar mensagem de erro
+            await showAlert(
+                `Não é possível excluir este pedido.\n\n${data.message}\n\nRegras de exclusão:\n• Apenas pedidos pendentes podem ser excluídos\n• Pedidos cancelados também podem ser excluídos\n• Pedidos em andamento não podem ser excluídos`,
+                'Exclusão Não Permitida',
+                'fas fa-exclamation-triangle'
+            );
+        }
+    } catch (error) {
+        console.error('Erro ao verificar exclusão:', error);
+        await showAlert(
+            'Erro ao verificar possibilidade de exclusão. Tente novamente.',
+            'Erro',
+            'fas fa-exclamation-triangle'
+        );
+    }
+}
+
+// Funções para seleção múltipla
+function updateSelection() {
+    const checkboxes = document.querySelectorAll('.pedido-checkbox:checked');
+    const selectedCount = checkboxes.length;
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCountSpan = document.querySelector('.selected-count');
+    
+    if (selectedCount > 0) {
+        bulkActions.style.display = 'flex';
+        selectedCountSpan.textContent = `${selectedCount} pedido(s) selecionado(s)`;
+    } else {
+        bulkActions.style.display = 'none';
+    }
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.pedido-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelection();
+}
+
+
+
+async function removeSelectedPedidos() {
+    const checkboxes = document.querySelectorAll('.pedido-checkbox:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (selectedIds.length === 0) {
+        await showAlert('Nenhum pedido selecionado', 'Aviso', 'fas fa-exclamation-triangle');
+        return;
+    }
+    
+    const confirmMessage = `Tem certeza que deseja remover ${selectedIds.length} pedido(s) selecionado(s)?\n\nOs pedidos serão movidos para a lixeira e podem ser restaurados posteriormente.`;
+    
+    const confirmed = await showConfirm(confirmMessage, 'Confirmar Remoção', 'fas fa-archive');
+    
+    if (confirmed) {
+        // Criar formulário para enviar múltiplos IDs
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/pedidos/bulk-remove';
+        
+        // Adicionar CSRF token
+        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Adicionar IDs dos pedidos
+        selectedIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'pedido_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Adicionar checkbox "Selecionar Todos" no cabeçalho
+function addSelectAllCheckbox() {
+    const sectionTitle = document.querySelector('.section-title');
+    const selectAllContainer = document.createElement('div');
+    selectAllContainer.className = 'select-all-container';
+    selectAllContainer.innerHTML = `
+        <label class="select-all-label">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+            <span>Selecionar Todos</span>
+        </label>
+    `;
+    
+    sectionTitle.parentNode.insertBefore(selectAllContainer, sectionTitle.nextSibling);
+}
+
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.pedido-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    updateSelection();
+}
+
+// Função para alternar visibilidade dos pedidos de um cliente
+function toggleCliente(clienteId) {
+    const clienteSection = document.querySelector(`[data-cliente-id="${clienteId}"]`);
+    const pedidosCliente = clienteSection.querySelector('.pedidos-cliente');
+    const toggleIcon = clienteSection.querySelector('.toggle-icon');
+    
+    if (clienteSection.classList.contains('collapsed')) {
+        // Expandir
+        clienteSection.classList.remove('collapsed');
+        clienteSection.classList.add('expanded');
+        pedidosCliente.style.display = 'block';
+        
+        // Animar a expansão
+        setTimeout(() => {
+            pedidosCliente.style.maxHeight = pedidosCliente.scrollHeight + 'px';
+            pedidosCliente.style.opacity = '1';
+        }, 10);
+        
+        // Salvar estado no localStorage
+        localStorage.setItem(`cliente_${clienteId}_expanded`, 'true');
+        
+        // Atualizar status
+        setTimeout(() => updateClienteStatus(), 350);
+    } else {
+        // Colapsar
+        pedidosCliente.style.maxHeight = '0';
+        pedidosCliente.style.opacity = '0';
+        
+        setTimeout(() => {
+            clienteSection.classList.remove('expanded');
+            clienteSection.classList.add('collapsed');
+            pedidosCliente.style.display = 'none';
+        }, 300);
+        
+        // Salvar estado no localStorage
+        localStorage.setItem(`cliente_${clienteId}_expanded`, 'false');
+        
+        // Atualizar status
+        setTimeout(() => updateClienteStatus(), 350);
+    }
+}
+
+// Função para expandir todos os clientes
+function expandAllClientes() {
+    const clienteSections = document.querySelectorAll('.cliente-section');
+    clienteSections.forEach((section, index) => {
+        const clienteId = section.getAttribute('data-cliente-id');
+        const pedidosCliente = section.querySelector('.pedidos-cliente');
+        
+        setTimeout(() => {
+            section.classList.remove('collapsed');
+            section.classList.add('expanded');
+            pedidosCliente.style.display = 'block';
+            
+            // Animar a expansão
+            setTimeout(() => {
+                pedidosCliente.style.maxHeight = pedidosCliente.scrollHeight + 'px';
+                pedidosCliente.style.opacity = '1';
+            }, 10);
+            
+            localStorage.setItem(`cliente_${clienteId}_expanded`, 'true');
+        }, index * 100); // Delay escalonado para efeito cascata
+    });
+    
+    // Atualizar status após todas as animações
+    setTimeout(() => updateClienteStatus(), (clienteSections.length * 100) + 350);
+}
+
+// Função para colapsar todos os clientes
+function collapseAllClientes() {
+    const clienteSections = document.querySelectorAll('.cliente-section');
+    clienteSections.forEach((section, index) => {
+        const clienteId = section.getAttribute('data-cliente-id');
+        const pedidosCliente = section.querySelector('.pedidos-cliente');
+        
+        setTimeout(() => {
+            pedidosCliente.style.maxHeight = '0';
+            pedidosCliente.style.opacity = '0';
+            
+            setTimeout(() => {
+                section.classList.remove('expanded');
+                section.classList.add('collapsed');
+                pedidosCliente.style.display = 'none';
+                
+                localStorage.setItem(`cliente_${clienteId}_expanded`, 'false');
+            }, 300);
+        }, index * 50); // Delay escalonado para efeito cascata
+    });
+    
+    // Atualizar status após todas as animações
+    setTimeout(() => updateClienteStatus(), (clienteSections.length * 50) + 350);
+}
+
+// Função para atualizar o status dos clientes
+function updateClienteStatus() {
+    const clienteSections = document.querySelectorAll('.cliente-section');
+    const totalClientes = clienteSections.length;
+    const expandedClientes = document.querySelectorAll('.cliente-section.expanded').length;
+    const collapsedClientes = totalClientes - expandedClientes;
+    
+    const statusText = document.getElementById('clienteStatusText');
+    const statusElement = document.getElementById('clienteStatus');
+    
+    if (expandedClientes === totalClientes) {
+        statusText.textContent = 'Todos expandidos';
+        statusElement.className = 'cliente-status all-expanded';
+    } else if (collapsedClientes === totalClientes) {
+        statusText.textContent = 'Todos colapsados';
+        statusElement.className = 'cliente-status all-collapsed';
+    } else {
+        statusText.textContent = `${expandedClientes} expandidos, ${collapsedClientes} colapsados`;
+        statusElement.className = 'cliente-status mixed';
+    }
+}
+
+// Restaurar estado dos clientes do localStorage
+function restoreClienteStates() {
+    const clienteSections = document.querySelectorAll('.cliente-section');
+    clienteSections.forEach(section => {
+        const clienteId = section.getAttribute('data-cliente-id');
+        const pedidosCliente = section.querySelector('.pedidos-cliente');
+        const isExpanded = localStorage.getItem(`cliente_${clienteId}_expanded`);
+        
+        if (isExpanded === 'false') {
+            section.classList.add('collapsed');
+            pedidosCliente.style.display = 'none';
+        } else {
+            section.classList.add('expanded');
+            pedidosCliente.style.display = 'block';
+        }
+    });
+    
+    // Atualizar status após restaurar
+    updateClienteStatus();
+}
+
+// Atalhos de teclado
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + E para expandir todos
+    if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        expandAllClientes();
+    }
+    
+    // Ctrl/Cmd + C para colapsar todos
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault();
+        collapseAllClientes();
+    }
+});
+
+// Inicializar quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    addSelectAllCheckbox();
+    restoreClienteStates();
+    
+    // Adicionar tooltips para atalhos de teclado
+    const expandBtn = document.querySelector('button[onclick="expandAllClientes()"]');
+    const collapseBtn = document.querySelector('button[onclick="collapseAllClientes()"]');
+    
+    if (expandBtn) {
+        expandBtn.title = 'Expandir todos os clientes (Ctrl+E)';
+    }
+    if (collapseBtn) {
+        collapseBtn.title = 'Colapsar todos os clientes (Ctrl+C)';
+    }
+});
+</script>
+{% endblock %}

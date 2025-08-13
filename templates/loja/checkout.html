@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Pasta Art Encanto{% endblock %}
+
+{% block content %}
+<section class="checkout-section">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-credit-card"></i>
+                {{ config.checkout_titulo or 'Finalizar Pedido' }}
+            </h1>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('loja.index') }}">Início</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="{{ url_for('loja.carrinho') }}">Carrinho</a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-current">Checkout</span>
+            </nav>
+        </div>
+
+        <div class="checkout-content">
+            <div class="checkout-form-section">
+                <div class="form-card">
+                    <h2>{{ config.checkout_titulo or 'Confirmar Dados' }}</h2>
+                    <p class="form-description">{{ config.checkout_descricao or 'Seus dados serão utilizados para contato via WhatsApp' }}</p>
+                    
+                    <!-- Dados do usuário logado -->
+                    <div class="user-data-display">
+                        <div class="user-info">
+                            <div class="info-item">
+                                <i class="fas fa-user"></i>
+                                <div>
+                                    <label>Nome Completo:</label>
+                                    <span class="user-value">{{ usuario.nome }}</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <label>E-mail:</label>
+                                    <span class="user-value">{{ usuario.email }}</span>
+                                </div>
+                            </div>
+
+                            {% if usuario.telefone %}
+                            <div class="info-item">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <label>Telefone:</label>
+                                    <span class="user-value">{{ usuario.telefone }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if usuario.endereco %}
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <label>Endereço:</label>
+                                    <span class="user-value">{{ usuario.endereco }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="user-actions">
+                            <a href="{{ url_for('usuarios.editar_perfil') }}" class="btn btn-outline btn-small btn-checkout">
+                                <i class="fas fa-edit"></i>
+                                Editar Dados
+                            </a>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('loja.finalizar_pedido') }}" class="checkout-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        {% if not usuario.telefone %}
+                        <div class="missing-data-alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <strong>Telefone necessário!</strong>
+                                <p>{{ config.checkout_telefone_obrigatorio or 'Precisamos do seu telefone para entrar em contato via WhatsApp.' }}</p>
+                                <a href="{{ url_for('usuarios.editar_perfil') }}" class="btn btn-warning btn-small">
+                                    Adicionar Telefone
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-actions">
+                            {% if usuario.telefone %}
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fab fa-whatsapp"></i>
+                                {{ config.checkout_botao_texto or 'Enviar Pedido via WhatsApp' }}
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-primary btn-large" disabled>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Adicione um telefone para continuar
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+
+
+            </div>
+
+            <div class="order-summary-section">
+                <div class="summary-card">
+                    <h3>Resumo do Pedido</h3>
+                    
+                    <div class="order-items">
+                        {% for doce_id, item in cart.items() %}
+                        <div class="order-item">
+                            <div class="item-info">
+                                <span class="item-name">{{ item.nome }}</span>
+                                <span class="item-details">{{ item.quantidade }}x R$ {{ "%.2f"|format(item.preco|float) }}</span>
+                            </div>
+                            <span class="item-total">R$ {{ "%.2f"|format((item.preco|float) * (item.quantidade|int)) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-line">
+                        <span>Subtotal:</span>
+                        <span>R$ {{ "%.2f"|format(total|float) }}</span>
+                    </div>
+                    
+                    <div class="summary-line">
+                        <span>Entrega:</span>
+                        <span class="delivery-note">A combinar</span>
+                    </div>
+                    
+                    <div class="summary-total">
+                        <span>Total:</span>
+                        <span>R$ {{ "%.2f"|format(total|float) }}</span>
+                    </div>
+
+                    <div class="summary-note">
+                        <i class="fas fa-info-circle"></i>
+                        <small>O valor final vai incluir taxa de entrega, que será informada via WhatsApp</small>
+                    </div>
+                </div>
+
+                <!-- Voltar ao Carrinho -->
+                <div class="back-to-cart">
+                    <a href="{{ url_for('loja.carrinho') }}" class="btn btn-outline btn-full">
+                        <i class="fas fa-arrow-left"></i>
+                        Voltar ao Carrinho
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Loading state no botão de finalizar
+document.querySelector('.checkout-form')?.addEventListener('submit', function(e) {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn && !btn.disabled) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando pedido...';
+        btn.disabled = true;
+    }
+});
+
+// Animação suave ao mostrar alerta de telefone faltando
+document.addEventListener('DOMContentLoaded', function() {
+    const alert = document.querySelector('.missing-data-alert');
+    if (alert) {
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+            alert.style.transition = 'all 0.3s ease';
+            alert.style.opacity = '1';
+            alert.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

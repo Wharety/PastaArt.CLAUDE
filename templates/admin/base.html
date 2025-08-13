@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Painel Administrativo - Pasta Art Encanto{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/favicon-256x256.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?v=2025">
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="admin-body">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-container">
+            <div class="admin-nav">
+                <a href="{{ url_for('admin.dashboard') }}">
+                                <div class="logo">
+                <img src="{{ url_for('static', filename=config.site_logo or 'images/logo.svg') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="logo-img">
+            </div>
+                </a>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="admin-mobile-toggle" onclick="toggleAdminMenu()">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                
+                <nav class="admin-menu" id="adminMenu">
+                    <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin.listar_doces') }}" class="admin-nav-link">
+                        <i class="fas fa-birthday-cake"></i> Produtos
+                    </a>
+                    <a href="{{ url_for('admin.listar_pedidos') }}" class="admin-nav-link">
+                        <i class="fas fa-shopping-cart"></i> Pedidos
+                    </a>
+                    <a href="{{ url_for('configuracoes.listar_configuracoes') }}" class="admin-nav-link">
+                        <i class="fas fa-cogs"></i> Configurações
+                    </a>
+                    
+                </nav>
+                
+                    <div class="user-actions">
+                        <a href="{{ url_for('admin.logout') }}" class="btn btn-outline btn-small">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages admin-flash">
+                <div class="admin-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'warning' else 'info-circle' if category == 'info' else 'times-circle' }}"></i>
+                            {{ message }}
+                            <button class="alert-close" onclick="this.parentElement.style.display='none'">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Admin Footer -->
+    <footer class="admin-footer">
+        <div class="admin-container">
+            <p>&copy; 2025 Pasta Art Encanto - Painel Administrativo</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script>
+        // Admin Mobile Menu Toggle
+        function toggleAdminMenu() {
+            const adminMenu = document.getElementById('adminMenu');
+            const menuToggle = document.querySelector('.admin-mobile-toggle');
+            
+            adminMenu.classList.toggle('admin-menu-open');
+            menuToggle.classList.toggle('hamburger-active');
+        }
+        
+        // Close admin menu when clicking on a link
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminLinks = document.querySelectorAll('.admin-nav-link');
+            adminLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const adminMenu = document.getElementById('adminMenu');
+                    const menuToggle = document.querySelector('.admin-mobile-toggle');
+                    adminMenu.classList.remove('admin-menu-open');
+                    menuToggle.classList.remove('hamburger-active');
+                });
+            });
+            
+            // Close admin menu when clicking outside
+            document.addEventListener('click', function(event) {
+                const adminMenu = document.getElementById('adminMenu');
+                const menuToggle = document.querySelector('.admin-mobile-toggle');
+                const adminNav = document.querySelector('.admin-nav');
+                
+                if (!adminNav.contains(event.target)) {
+                    adminMenu.classList.remove('admin-menu-open');
+                    menuToggle.classList.remove('hamburger-active');
+                }
+            });
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

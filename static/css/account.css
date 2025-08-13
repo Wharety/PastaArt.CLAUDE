@@ -1,0 +1,470 @@
+/* ================================
+   PASTA ART ENCANTO - ÁREA DO USUÁRIO
+   Estilos de Minha Conta / Pedidos
+   ================================ */
+
+/* Container e cabeçalho */
+.account-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.account-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.account-header h1 {
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Grid de cartões */
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* Card da conta */
+.account-card {
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header do card com gradiente (apenas na área do usuário) */
+.account-card .card-header {
+  background: var(--color-light);
+  color: var(--color-white);
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-card .card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Conteúdo do card */
+.account-card .card-content {
+  padding: 1.5rem;
+}
+
+/* Linhas de informações */
+.account-card .info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.account-card .info-item:last-child {
+  border-bottom: none;
+}
+
+.account-card .info-label {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.account-card .info-value {
+  color: var(--color-text-light);
+  text-align: right;
+}
+
+/* Resumo de pedidos (no card de Minha Conta) */
+.account-card .orders-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.account-card .summary-item {
+  text-align: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.account-card .summary-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.account-card .summary-label {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+/* Pedidos recentes */
+.account-card .recent-orders {
+  margin-top: 1.5rem;
+}
+
+.account-card .recent-orders h4 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.account-card .order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.account-card .order-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-card .order-number {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.account-card .order-date {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+.account-card .order-status { margin: 0 1rem; }
+
+/* Status badges (usuário) */
+.account-card .status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.account-card .status-pendente { background: rgba(243, 156, 18, 0.1); color: #f39c12; }
+.account-card .status-preparando { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+.account-card .status-pronto { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+.account-card .status-entregando { background: rgba(155, 89, 182, 0.1); color: #9b59b6; }
+.account-card .status-concluido { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+.account-card .status-cancelado { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+
+.account-card .order-total {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Estados vazios */
+.account-card .empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.account-card .empty-state i {
+  font-size: 3rem;
+  color: #bdc3c7;
+  margin-bottom: 1rem;
+}
+
+/* Botões utilitários ausentes (compatibilidade) */
+/* Removido duplicação: usar utilitários globais em components.css */
+.btn-sm, .btn-small { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
+
+.btn-outline-primary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: rgba(212, 163, 115, 0.1);
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.btn-outline-secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--color-light);
+  color: var(--color-text);
+  border-color: var(--color-border-dark);
+}
+
+/* NOVO: botão outline danger usado em cancelamentos */
+.btn-outline-danger {
+  background-color: transparent;
+  color: var(--color-error);
+  border: 2px solid var(--color-error);
+}
+
+.btn-outline-danger:hover {
+  background-color: rgba(231, 76, 60, 0.08);
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+/* ================================
+   MEUS PEDIDOS (lista)
+   ================================ */
+.orders-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+
+.orders-header { text-align: center; margin-bottom: 3rem; }
+.orders-header h1 { color: var(--color-primary); margin-bottom: 0.5rem; }
+
+.orders-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.orders-summary .summary-card {
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06);
+  padding: 1rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.orders-summary .summary-icon { font-size: 2rem; color: var(--color-primary); }
+.orders-summary .summary-content { flex: 1; }
+.orders-summary .summary-number { display: block; font-size: 1.4rem; font-weight: 600; color: var(--color-primary); }
+.orders-summary .summary-label { font-size: 0.9rem; color: var(--color-text-light); }
+
+.orders-list { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.order-card {
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.order-header {
+  background: var(--color-light);
+  color: var(--color-text-light);
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-header h3 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+.order-date { font-size: 0.9rem; opacity: 0.9; }
+
+.order-details { padding: 1.5rem; }
+.order-items { margin-bottom: 1.5rem; }
+.order-items h4 { color: var(--color-primary); margin-bottom: 1rem; font-size: 1.1rem; }
+
+.order-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+.order-item:last-child { border-bottom: none; }
+.item-info { display: flex; flex-direction: column; }
+.item-name { font-weight: 500; color: var(--color-text); }
+.item-quantity { font-size: 0.8rem; color: var(--color-text-light); }
+.item-price { font-weight: 600; color: var(--color-primary); }
+
+.order-summary { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.summary-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
+.summary-row.total { border-top: 1px solid #ddd; margin-top: 0.5rem; padding-top: 0.5rem; font-weight: 600; color: var(--color-primary); }
+
+.order-notes { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.order-notes h4 { color: #856404; margin-bottom: 0.5rem; font-size: 1rem; }
+.order-notes p { color: #856404; margin: 0; font-size: 0.9rem; }
+
+.order-actions { padding: 1rem 1.5rem; background: #f8f9fa; border-top: 1px solid #eee; display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+.back-actions { text-align: center; margin-top: 2rem; }
+
+/* ================================
+   DETALHES DO PEDIDO
+   ================================ */
+.order-details-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+
+.order-details-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem; }
+.header-content h1 { color: var(--color-primary); margin-bottom: 0.5rem; }
+.header-content p { color: var(--color-text-light); margin: 0; }
+
+.order-details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+
+.order-info-card,
+.order-items-card,
+.order-summary-card,
+.order-timeline-card {
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Cabeçalhos dos cards (tema claro) */
+.order-info-card .card-header,
+.order-items-card .card-header,
+.order-summary-card .card-header,
+.order-timeline-card .card-header {
+  background: var(--color-light);
+  color: var(--color-text);
+  padding: 1.25rem 1.5rem;
+}
+
+.order-info-card .card-content,
+.order-items-card .card-content,
+.order-summary-card .card-content,
+.order-timeline-card .card-content { padding: 1.5rem; }
+
+/* Info rows */
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-weight: 600; color: var(--color-text); }
+.info-value { color: var(--color-text-light); text-align: right; }
+.total-value { color: var(--color-primary); font-weight: 600; font-size: 1.1rem; }
+
+/* Itens do pedido (card) */
+.order-items-card .order-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #eee; }
+.order-items-card .order-item:last-child { border-bottom: none; }
+.item-image { flex-shrink: 0; }
+.product-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+.product-thumb-placeholder { width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-size: 1.5rem; }
+.item-details { flex: 1; }
+.item-name { font-weight: 600; color: var(--color-text); margin-bottom: 0.5rem; }
+.item-flavors { margin-bottom: 0.5rem; }
+.flavor-label { font-size: 0.8rem; color: var(--color-text-light); margin-right: 0.5rem; }
+.flavor-tag { background: var(--color-primary); color: var(--color-white); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; margin-right: 0.25rem; }
+.item-specs { display: flex; gap: 1rem; font-size: 0.9rem; color: var(--color-text-light); }
+.item-quantity { font-weight: 500; }
+.item-unit-price { color: var(--color-text-light); }
+.item-total { flex-shrink: 0; }
+.total-amount { font-weight: 600; color: var(--color-primary); font-size: 1.1rem; }
+
+/* Timeline */
+.timeline { 
+    padding: 1rem; 
+    position: relative;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 1.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ddd;
+    z-index: 1;
+}
+
+.timeline-item { 
+    display: flex; 
+    align-items: flex-start; 
+    gap: 1rem; 
+    padding: 1rem 0; 
+    position: relative;
+    z-index: 2;
+}
+
+.timeline-item:not(:last-child)::after { 
+    content: ''; 
+    position: absolute; 
+    left: 1.5rem; 
+    top: 3rem; 
+    bottom: -1rem; 
+    width: 2px; 
+    background: #ddd; 
+    z-index: 1;
+}
+
+.timeline-item.active .timeline-icon { 
+    background: var(--color-primary); 
+    color: var(--color-white); 
+}
+
+.timeline-item.cancelled .timeline-icon { 
+    background: var(--color-error); 
+    color: var(--color-white); 
+}
+
+.timeline-icon { 
+    width: 3rem; 
+    height: 3rem; 
+    border-radius: 50%; 
+    background: #bdc3c7; 
+    color: #fff; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    flex-shrink: 0;
+    position: relative;
+    z-index: 3;
+}
+
+.timeline-content { 
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.timeline-content h4 { 
+    margin: 0 0 0.25rem 0; 
+    color: var(--color-text); 
+    font-size: 1rem; 
+    font-weight: 600;
+}
+
+.timeline-content p { 
+    margin: 0; 
+    color: var(--color-text-light); 
+    font-size: 0.9rem; 
+}
+
+/* Ações do pedido (rodapé) */
+.order-actions { text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 12px; margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .account-grid { grid-template-columns: 1fr; }
+  .account-card .orders-summary { grid-template-columns: repeat(2, 1fr); }
+
+  .orders-summary .summary-card { padding: 0.75rem; }
+  .orders-list { gap: 1rem; }
+
+  .order-header { flex-direction: column; gap: 0.5rem; text-align: center; }
+  .order-actions { justify-content: center; }
+
+  .order-details-grid { grid-template-columns: 1fr; }
+  .order-details-header { flex-direction: column; gap: 1rem; text-align: center; }
+  
+  /* Timeline responsivo */
+  .timeline { padding: 0.5rem; }
+  .timeline-item { 
+    gap: 0.75rem; 
+    padding: 0.75rem 0; 
+  }
+  .timeline-icon { 
+    width: 2.5rem; 
+    height: 2.5rem; 
+    font-size: 0.9rem;
+  }
+  .timeline-content h4 { 
+    font-size: 0.9rem; 
+  }
+  .timeline-content p { 
+    font-size: 0.8rem; 
+  }
+}

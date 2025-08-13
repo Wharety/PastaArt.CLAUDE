@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido Enviado - Pasta Art Encanto{% endblock %}
+
+{% block content %}
+<section class="order-success-section">
+    <div class="container">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h1 class="success-title">{{ config.pedido_sucesso_titulo or 'Pedido Enviado com Sucesso!' }}</h1>
+            <p class="success-subtitle">{{ (config.pedido_sucesso_subtitulo or 'Olá {nome}, seu pedido foi enviado para nosso WhatsApp').replace('{nome}', nome) }}</p>
+            
+            <div class="order-details">
+                {% if pedido_id %}
+                <div class="detail-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Pedido número: <strong>#{{ pedido_id }}</strong></span>
+                </div>
+                {% endif %}
+                
+                <div class="detail-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Total do pedido: <strong>R$ {{ "%.2f"|format(total) }}</strong></span>
+                </div>
+                
+                <div class="detail-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Resposta em até <strong>{{ config.pedido_tempo_resposta or '1 hora' }}</strong></span>
+                </div>
+                
+                <div class="detail-item">
+                                            <i class="fab fa-whatsapp"></i>
+                    <span>Confirmação via <strong>WhatsApp</strong></span>
+                </div>
+            </div>
+
+            <div class="whatsapp-action">
+                <button onclick="openWhatsApp()" class="btn btn-primary btn-large">
+                    <i class="fab fa-whatsapp"></i>
+                    {{ config.pedido_whatsapp_texto or 'Abrir WhatsApp' }}
+                </button>
+                <p class="whatsapp-note">
+                    Clique no botão acima para abrir o WhatsApp com sua mensagem pré-preenchida
+                </p>
+            </div>
+
+            <div class="next-steps">
+                <h3>Próximos Passos:</h3>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Confirmação</strong>
+                            <p>Confirmaremos seu pedido via WhatsApp em até 1 hora</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>Pagamento</strong>
+                            <p>Enviaremos as opções de pagamento (PIX, cartão ou dinheiro)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Preparo</strong>
+                            <p>Seus doces serão preparados com carinho no prazo estipulado</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <strong>Entrega</strong>
+                            <p>Combinaremos o melhor horário para entregar ou retirar no local</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ url_for('loja.index') }}" class="btn btn-outline btn-large">
+                    <i class="fas fa-home"></i>
+                    Voltar ao Início
+                </a>
+                
+                <a href="{{ url_for('usuarios.meus_pedidos') }}" class="btn btn-outline btn-large">
+                    <i class="fas fa-list"></i>
+                    Ver Meus Pedidos
+                </a>
+                
+                <button onclick="openWhatsApp()" class="btn btn-primary btn-large">
+                    <i class="fab fa-whatsapp"></i>
+                    {{ config.pedido_whatsapp_texto or 'Abrir WhatsApp' }} Novamente
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Seção de Agradecimento -->
+<section class="thank-you-section">
+    <div class="container">
+        <div class="thank-you-content">
+            <h2>Obrigado pela Confiança!</h2>
+            <p>Estamos muito felizes em fazer parte do seu momento especial. Cada doce é preparado com muito carinho e dedicação para garantir que tudo saia perfeito.</p>
+            
+            <div class="social-sharing">
+                <p>Compartilhe com seus amigos:</p>
+                <div class="share-buttons">
+                    <a href="#" class="share-btn facebook" onclick="shareOnFacebook()">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="share-btn instagram" onclick="shareOnInstagram()">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="share-btn whatsapp" onclick="shareOnWhatsApp()">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Função para abrir WhatsApp diretamente
+function openWhatsApp() {
+    // Usar a URL da API do WhatsApp que é mais direta
+    const whatsappUrl = '{{ whatsapp_url }}';
+    
+    // Abrir em nova aba/app
+    window.open(whatsappUrl, '_blank');
+}
+
+// Abrir WhatsApp automaticamente em alguns segundos (opcional)
+setTimeout(function() {
+    showConfirm('Deseja abrir o WhatsApp agora para enviar seu pedido?', 'Abrir WhatsApp', 'fab fa-whatsapp').then(function(result) {
+        if (result) {
+            openWhatsApp();
+        }
+    });
+}, 3000);
+
+// Funções de compartilhamento
+function shareOnFacebook() {
+    const url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.origin);
+    window.open(url, '_blank', 'width=600,height=400');
+}
+
+function shareOnInstagram() {
+    // Instagram não permite compartilhamento direto via URL, então abrimos o perfil
+    showAlert('Siga-nos no Instagram @pastaartencanto para ver mais doces deliciosos!', 'Instagram', 'fab fa-instagram');
+}
+
+function shareOnWhatsApp() {
+    const text = 'Acabei de fazer um pedido na Pasta Art Encanto! Doces personalizados deliciosos 🍰';
+    const url = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + window.location.origin);
+    window.open(url, '_blank');
+}
+
+// Animação dos steps
+const steps = document.querySelectorAll('.step');
+steps.forEach((step, index) => {
+    setTimeout(() => {
+        step.style.opacity = '1';
+        step.style.transform = 'translateY(0)';
+    }, index * 200);
+});
+
+// Adicionar animação inicial aos steps
+steps.forEach(step => {
+    step.style.opacity = '0';
+    step.style.transform = 'translateY(20px)';
+    step.style.transition = 'all 0.3s ease';
+});
+</script>
+{% endblock %}

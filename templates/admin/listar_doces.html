@@ -1,0 +1,527 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gerenciar Produtos - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <div class="page-title-section">
+            <h1 class="admin-page-title">
+                <i class="fas fa-birthday-cake"></i>
+                {{ config.admin_produtos_titulo or 'Produtos' }}
+            </h1>
+            <p class="admin-page-subtitle">{{ config.admin_produtos_subtitulo or 'Gerencie todos os doces da sua loja' }}</p>
+        </div>
+        
+        <div class="page-actions">
+            <a href="{{ url_for('admin.novo_doce') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                {{ config.admin_novo_produto or 'Novo Produto' }}
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if doces %}
+<div class="products-container">
+    <div class="products-header">
+        <h2>{{ config.admin_lista_produtos or 'Lista de Produtos' }} ({{ doces|length }})</h2>
+        <div class="products-filters">
+            <select id="status-filter" class="form-control">
+                <option value="">{{ config.admin_todos_status or 'Todos os Status' }}</option>
+                <option value="active">{{ config.admin_apenas_ativos or 'Apenas Ativos' }}</option>
+                <option value="inactive">{{ config.admin_apenas_inativos or 'Apenas Inativos' }}</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Versão Desktop: Tabela -->
+    <div class="desktop-view">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>{{ config.admin_coluna_imagem or 'Imagem' }}</th>
+                        <th>{{ config.admin_coluna_nome or 'Nome' }}</th>
+                        <th>{{ config.admin_coluna_preco or 'Preço' }}</th>
+                        <th>{{ config.admin_coluna_sabores or 'Sabores' }}</th>
+                        <th>{{ config.admin_coluna_qtd_min or 'Qtd. Mín.' }}</th>
+                        <th>{{ config.admin_coluna_estoque or 'Estoque' }}</th>
+                        <th>{{ config.admin_coluna_status or 'Status' }}</th>
+                        <th>{{ config.admin_coluna_data or 'Data' }}</th>
+                        <th>{{ config.admin_coluna_acoes or 'Ações' }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doce in doces %}
+                    <tr class="product-row" data-status="{{ 'active' if doce.ativo else 'inactive' }}">
+                        <td class="product-image-cell">
+                            {% if doce.imagem_url %}
+                                <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" class="table-product-image">
+                            {% else %}
+                                <div class="table-product-placeholder">
+                                    <i class="fas fa-birthday-cake"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="product-name-cell">
+                            <div class="product-name-content">
+                                <h4>{{ doce.nome }}</h4>
+                                <p class="product-description-preview">{{ doce.descricao[:60] }}{% if doce.descricao|length > 60 %}...{% endif %}</p>
+                            </div>
+                        </td>
+                        
+                        <td class="product-price-cell">
+                            <span class="price-display">R$ {{ "%.2f"|format(doce.preco) }}</span>
+                        </td>
+                        
+                        <td class="product-flavors-cell">
+                            {% if doce.sabores %}
+                                <div class="flavors-list">
+                                    {% for sabor in doce.get_sabores_list()[:3] %}
+                                        <span class="flavor-tag">{{ sabor.strip() }}</span>
+                                    {% endfor %}
+                                    {% if doce.get_sabores_list()|length > 3 %}
+                                        <span class="flavor-tag more">+{{ doce.get_sabores_list()|length - 3 }}</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="empty-text">-</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="product-min-qty-cell">
+                            <span class="min-qty-display">
+                                {{ doce.quantidade_minima }} {{ doce.unidade_venda }}
+                            </span>
+                        </td>
+                        
+                        <td class="product-stock-cell">
+                            {% if doce.estoque_disponivel is not none %}
+                                <span class="stock-display {% if doce.estoque_disponivel <= 5 %}low{% endif %}">
+                                    {{ doce.estoque_disponivel }}
+                                </span>
+                            {% else %}
+                                <span class="stock-display unlimited">∞</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="product-status-cell">
+                            {% if doce.ativo %}
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-eye"></i> Ativo
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <i class="fas fa-eye-slash"></i> Inativo
+                                </span>
+                            {% endif %}
+                            {% if doce.destaque %}
+                                <span class="status-badge status-featured">
+                                    <i class="fas fa-star"></i> Destaque
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="product-date-cell">
+                            <span class="date-display">{{ doce.data_criacao.strftime('%d/%m/%Y') }}</span>
+                        </td>
+                        
+                        <td class="product-actions-cell">
+                            <div class="action-buttons">
+                                <a href="{{ url_for('loja.detalhes_doce', doce_id=doce.id) }}" 
+                                   target="_blank" 
+                                   class="btn btn-small btn-outline"
+                                   title="Ver na loja">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                                
+                                <a href="{{ url_for('admin.editar_doce', doce_id=doce.id) }}" 
+                                   class="btn btn-small btn-primary"
+                                   title="Editar">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                
+                                <a href="{{ url_for('admin.toggle_status_doce', doce_id=doce.id) }}" 
+                                   class="btn btn-small btn-secondary"
+                                   title="{{ 'Desativar' if doce.ativo else 'Ativar' }}">
+                                    <i class="fas fa-{{ 'eye-slash' if doce.ativo else 'eye' }}"></i>
+                                </a>
+                                
+                                <button type="button" 
+                                        class="btn btn-small btn-danger"
+                                        onclick="checkDeletePossibility('{{ doce.id }}', '{{ doce.nome }}')"
+                                        title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Versão Mobile: Cards -->
+    <div class="mobile-view">
+        <div class="products-grid-mobile">
+            {% for doce in doces %}
+            <div class="product-card-mobile" data-status="{{ 'active' if doce.ativo else 'inactive' }}">
+                <div class="product-card-header">
+                    <div class="product-image-mobile">
+                        {% if doce.imagem_url %}
+                            <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}">
+                        {% else %}
+                            <div class="product-placeholder-mobile">
+                                <i class="fas fa-birthday-cake"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-info-mobile">
+                        <h4 class="product-name-mobile">{{ doce.nome }}</h4>
+                        <p class="product-price-mobile">R$ {{ "%.2f"|format(doce.preco) }}</p>
+                        
+                        <div class="product-meta-mobile">
+                            <span class="product-date-mobile">
+                                <i class="fas fa-calendar"></i> {{ doce.data_criacao.strftime('%d/%m/%Y') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="product-card-body">
+                    <div class="product-details-mobile">
+                        <div class="detail-row">
+                            <span class="detail-label">Sabores:</span>
+                            <div class="detail-value">
+                                {% if doce.sabores %}
+                                    <div class="flavors-mobile">
+                                        {% for sabor in doce.get_sabores_list()[:2] %}
+                                            <span class="flavor-tag-mobile">{{ sabor.strip() }}</span>
+                                        {% endfor %}
+                                        {% if doce.get_sabores_list()|length > 2 %}
+                                            <span class="flavor-more-mobile">+{{ doce.get_sabores_list()|length - 2 }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="empty-mobile">-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Qtd. Mín:</span>
+                            <span class="detail-value">{{ doce.quantidade_minima }} {{ doce.unidade_venda }}</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Estoque:</span>
+                            <span class="detail-value">
+                                {% if doce.estoque_disponivel is not none %}
+                                    <span class="stock-mobile {% if doce.estoque_disponivel <= 5 %}low{% endif %}">
+                                        {{ doce.estoque_disponivel }}
+                                    </span>
+                                {% else %}
+                                    <span class="stock-mobile unlimited">∞</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="product-status-mobile">
+                        {% if doce.ativo %}
+                            <span class="status-badge status-active">
+                                <i class="fas fa-eye"></i> Ativo
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="fas fa-eye-slash"></i> Inativo
+                            </span>
+                        {% endif %}
+                        {% if doce.destaque %}
+                            <span class="status-badge status-featured">
+                                <i class="fas fa-star"></i> Destaque
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="product-card-footer">
+                    <div class="actions-mobile">
+                        <a href="{{ url_for('loja.detalhes_doce', doce_id=doce.id) }}" 
+                           target="_blank" 
+                           class="btn btn-small btn-outline"
+                           title="Ver na loja">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        
+                        <a href="{{ url_for('admin.editar_doce', doce_id=doce.id) }}" 
+                           class="btn btn-small btn-primary"
+                           title="Editar">
+                            <i class="fas fa-edit"></i> {{ config.admin_editar or 'Editar' }}
+                        </a>
+                        
+                        <a href="{{ url_for('admin.toggle_status_doce', doce_id=doce.id) }}" 
+                           class="btn btn-small btn-secondary"
+                           title="{{ 'Desativar' if doce.ativo else 'Ativar' }}">
+                            <i class="fas fa-{{ 'eye-slash' if doce.ativo else 'eye' }}"></i>
+                        </a>
+                        
+                        <button type="button" 
+                                class="btn btn-small btn-danger"
+                                onclick="checkDeletePossibility('{{ doce.id }}', '{{ doce.nome }}')"
+                                title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirmar Exclusão</h3>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+                                    <p>{{ config.admin_confirmar_exclusao or 'Tem certeza que deseja excluir o produto' }} <strong id="productName"></strong>?</p>
+            <p class="warning-text">
+                <i class="fas fa-exclamation-triangle"></i>
+                Esta ação não pode ser desfeita.
+            </p>
+        </div>
+                                <div class="modal-footer">
+                            <button class="btn btn-outline" onclick="closeDeleteModal()">Cancelar</button>
+                            <form id="deleteForm" method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-danger" onclick="submitDeleteForm()">
+                                    <i class="fas fa-trash"></i> {{ config.admin_excluir or 'Excluir' }}
+                                </button>
+                            </form>
+                        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state large">
+    <div class="empty-icon">
+        <i class="fas fa-birthday-cake"></i>
+    </div>
+    <h2>Nenhum produto cadastrado</h2>
+    <p>Comece criando seu primeiro doce personalizado para exibir na loja.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.error-text {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+}
+
+.warning-text {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+}
+
+.modal-body ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.modal-body li {
+    margin: 5px 0;
+    color: #666;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Filtro por status
+document.getElementById('status-filter').addEventListener('change', function() {
+    const selectedStatus = this.value;
+    const desktopRows = document.querySelectorAll('.product-row');
+    const mobileCards = document.querySelectorAll('.product-card-mobile');
+    
+    // Filtrar tabela desktop
+    desktopRows.forEach(row => {
+        if (selectedStatus === '' || row.dataset.status === selectedStatus) {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Filtrar cards mobile
+    mobileCards.forEach(card => {
+        if (selectedStatus === '' || card.dataset.status === selectedStatus) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Verificar se o doce pode ser excluído
+function checkDeletePossibility(doceId, doceName) {
+    // Mostrar loading
+    const modal = document.getElementById('deleteModal');
+    const modalBody = modal.querySelector('.modal-body');
+    const modalFooter = modal.querySelector('.modal-footer');
+    
+    modalBody.innerHTML = '<p>Verificando possibilidade de exclusão...</p>';
+    modalFooter.style.display = 'none';
+    modal.style.display = 'flex';
+    
+    // Fazer requisição AJAX
+    fetch(`/admin/doces/${doceId}/check-delete`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.can_delete) {
+                // Pode excluir - mostrar modal de confirmação
+                modalBody.innerHTML = `
+                    <p>{{ config.admin_confirmar_exclusao or 'Tem certeza que deseja excluir o produto' }} <strong>${doceName}</strong>?</p>
+                    <p class="warning-text">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Esta ação não pode ser desfeita.
+                    </p>
+                `;
+                modalFooter.style.display = 'flex';
+                document.getElementById('deleteForm').action = `/admin/doces/${doceId}/excluir`;
+            } else {
+                // Não pode excluir - mostrar mensagem de erro
+                modalBody.innerHTML = `
+                    <p><strong>{{ config.admin_nao_pode_excluir or 'Não é possível excluir este produto' }}</strong></p>
+                    <p class="error-text">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ${data.message}
+                    </p>
+                    <p><strong>Alternativas:</strong></p>
+                    <ul>
+                        <li>Desative o produto em vez de excluí-lo</li>
+                        <li>Aguarde até que não haja mais pedidos relacionados</li>
+                    </ul>
+                `;
+                modalFooter.innerHTML = `
+                    <button class="btn btn-outline" onclick="closeDeleteModal()">Fechar</button>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao verificar exclusão:', error);
+            modalBody.innerHTML = `
+                <p class="error-text">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Erro ao verificar possibilidade de exclusão. Tente novamente.
+                </p>
+            `;
+            modalFooter.innerHTML = `
+                <button class="btn btn-outline" onclick="closeDeleteModal()">Fechar</button>
+            `;
+        });
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Adicionar listener para fechar modal clicando fora
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+// Adicionar listener para fechar com ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+
+// Função para submeter o formulário de exclusão
+function submitDeleteForm() {
+    const form = document.getElementById('deleteForm');
+    if (form) {
+        console.log('Submetendo formulário de exclusão...');
+        form.submit();
+    } else {
+        console.error('Formulário de exclusão não encontrado');
+    }
+}
+
+// Fechar modal clicando fora
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+// Confirmar antes de alternar status
+document.querySelectorAll('a[href*="toggle-status"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        const isActive = this.querySelector('i').classList.contains('fa-eye-slash');
+        const action = isActive ? 'desativar' : 'ativar';
+        
+        e.preventDefault();
+        showConfirm(`Tem certeza que deseja ${action} este produto?`, 'Confirmar Ação', 'fas fa-question-circle').then(function(result) {
+            if (result) {
+                window.location.href = link.href;
+            }
+        });
+    });
+});
+
+// Animação das linhas da tabela desktop
+const rows = document.querySelectorAll('.product-row');
+rows.forEach((row, index) => {
+    setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+    }, index * 50);
+});
+
+// Adicionar animação inicial desktop
+rows.forEach(row => {
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(10px)';
+    row.style.transition = 'all 0.3s ease';
+});
+
+// Animação dos cards mobile
+const mobileCards = document.querySelectorAll('.product-card-mobile');
+mobileCards.forEach((card, index) => {
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, index * 100);
+});
+
+// Adicionar animação inicial mobile
+mobileCards.forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.4s ease';
+});
+</script>
+{% endblock %}

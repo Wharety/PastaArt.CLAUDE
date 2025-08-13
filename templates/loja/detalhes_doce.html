@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doce.nome }} - Pasta Art Encanto{% endblock %}
+
+{% block content %}
+<section class="product-details">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{{ url_for('loja.index') }}">Início</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ doce.nome }}</span>
+        </nav>
+
+        <div class="product-detail-content">
+            <div class="product-image-section">
+                {% if doce.imagem_url %}
+                    <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" class="product-detail-image" width="800" height="500" decoding="async">
+                {% else %}
+                    <div class="product-detail-placeholder">
+                        <i class="fas fa-birthday-cake"></i>
+                        <p>Imagem em breve</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="product-info-section">
+                <h1 class="product-detail-title">{{ doce.nome }}</h1>
+                
+                <div class="product-detail-price">
+                    <span class="price-label">Preço:</span>
+                    <span class="price-value">R$ {{ "%.2f"|format(doce.preco) }}</span>
+                </div>
+
+                <div class="product-detail-description">
+                    <h3>Descrição</h3>
+                    <p>{{ doce.descricao }}</p>
+                </div>
+
+                <!-- Novas Informações do Produto -->
+                {% if doce.sabores %}
+                <div class="product-flavors-section">
+                    <h3>Sabores Disponíveis</h3>
+                    <div class="flavors-grid">
+                        {% for sabor in doce.get_sabores_list() %}
+                            <label class="flavor-option">
+                                <input type="radio" 
+                                       name="sabor_selecionado" 
+                                       value="{{ sabor.strip() }}" 
+                                       class="flavor-radio"
+                                       {% if loop.first %}checked{% endif %}>
+                                <span class="flavor-badge">{{ sabor.strip() }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="flavor-warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Verifique a disponibilidade do sabor escolhido via WhatsApp ao finalizar o pedido.</span>
+                    </div>
+                </div>
+                {% endif %}
+
+
+
+                {% if doce.quantidade_minima > 1 %}
+                <div class="product-min-qty-section">
+                    <h3>Quantidade Mínima</h3>
+                    <p class="min-qty-info">
+                        <i class="fas fa-info-circle"></i>
+                        Pedido mínimo: {{ doce.quantidade_minima }} {{ doce.unidade_venda }}
+                    </p>
+                </div>
+                {% endif %}
+
+                <div class="product-actions-detail">
+                    <form method="POST" action="{{ url_for('loja.adicionar_carrinho') }}" class="quantity-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="quantity-selector">
+                            <label for="quantidade">Quantidade:</label>
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
+                                <input type="number" 
+                                       id="quantidade" 
+                                       name="quantidade" 
+                                       value="{{ doce.quantidade_minima }}" 
+                                       min="{{ doce.quantidade_minima }}" 
+                                       max="50">
+                                <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+                            </div>
+                            {% if doce.quantidade_minima > 1 %}
+                            <small class="quantity-hint">
+                                Quantidade mínima: {{ doce.quantidade_minima }} {{ doce.unidade_venda }}
+                            </small>
+                            {% endif %}
+                        </div>
+                        
+                        <input type="hidden" name="doce_id" value="{{ doce.id }}">
+                        {% if doce.sabores %}
+                        <input type="hidden" name="sabor_selecionado" id="sabor_selecionado_input" value="{{ doce.get_sabores_list()[0].strip() }}">
+                        {% endif %}
+                        
+                        <div class="action-buttons">
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-cart-plus"></i>
+                                Adicionar ao Carrinho
+                            </button>
+                            
+                            <a href="{{ url_for('loja.index') }}" class="btn btn-outline btn-large">
+                                <i class="fas fa-arrow-left"></i>
+                                Continuar Comprando
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Informações Adicionais -->
+                <div class="product-extra-info">
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Tempo de preparo:</strong>
+                            <span>15 dias úteis</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <i class="fas fa-palette"></i>
+                        <div>
+                            <strong>Personalização:</strong>
+                            <span>Cores podem ser personalizados combinadas previamente</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <i class="fas fa-leaf"></i>
+                        <div>
+                            <strong>Ingredientes:</strong>
+                            <span>Todos naturais e de alta qualidade</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function increaseQuantity() {
+    const input = document.getElementById('quantidade');
+    const currentValue = parseInt(input.value);
+    const minValue = parseInt(input.min) || 1;
+    if (currentValue < 50) {
+        input.value = currentValue + 1;
+    }
+}
+
+function decreaseQuantity() {
+    const input = document.getElementById('quantidade');
+    const currentValue = parseInt(input.value);
+    const minValue = parseInt(input.min) || 1;
+    if (currentValue > minValue) {
+        input.value = currentValue - 1;
+    }
+}
+
+// Animação no botão de adicionar ao carrinho
+document.querySelector('.quantity-form').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adicionando...';
+    btn.disabled = true;
+    
+    // Re-habilitar o botão após 2 segundos se não houver redirecionamento
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
+});
+
+// Validação da quantidade
+document.getElementById('quantidade').addEventListener('input', function() {
+    const value = parseInt(this.value);
+    const minValue = parseInt(this.min) || 1;
+    if (value < minValue) this.value = minValue;
+    if (value > 50) this.value = 50;
+});
+
+// Atualizar sabor selecionado quando o usuário escolher
+document.addEventListener('DOMContentLoaded', function() {
+    const flavorRadios = document.querySelectorAll('.flavor-radio');
+    const saborInput = document.getElementById('sabor_selecionado_input');
+    
+    if (flavorRadios.length > 0 && saborInput) {
+        flavorRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                saborInput.value = this.value;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

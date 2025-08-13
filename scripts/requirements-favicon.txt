@@ -1,0 +1,11 @@
+# Dependências para geração de favicons
+# Pasta Art Encanto
+
+# Conversão SVG para PNG
+cairosvg>=2.7.0
+
+# Criação de arquivo ICO
+Pillow>=10.0.0
+
+# Para desenvolvimento (opcional)
+# watchdog>=3.0.0  # Para monitorar mudanças no SVG

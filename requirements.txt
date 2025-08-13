@@ -1,0 +1,26 @@
+# PASTA ART ENCANTO - Dependências Python
+# Flask e extensões principais
+Flask>=3.0.0
+Flask-SQLAlchemy>=3.1.1
+Flask-WTF>=1.2.1
+
+# Banco de dados
+PyMySQL>=1.1.0
+cryptography>=41.0.0
+
+# Segurança e autenticação
+Werkzeug>=3.0.1
+WTForms>=3.1.1
+
+# Manipulação de imagens
+Pillow>=10.4.0
+
+# Validação e formulários
+email-validator>=2.1.0
+
+# Utilitários
+python-dotenv>=1.0.0
+colorama>=0.4.6
+
+# Desenvolvimento (opcional)
+# Flask-DebugToolbar>=0.15.1

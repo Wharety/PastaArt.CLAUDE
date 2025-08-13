@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Pedidos - {{ config.site_nome or 'Pasta Art Encanto' }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="orders-container">
+        <div class="orders-header">
+            <h1>Meus Pedidos</h1>
+            <p>Acompanhe todos os seus pedidos e seu histórico de compras</p>
+        </div>
+
+        <!-- Flash messages são exibidas globalmente no template base -->
+
+        {% if pedidos %}
+            <div class="orders-summary">
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="summary-content">
+                        <span class="summary-number">{{ pedidos|length }}</span>
+                        <span class="summary-label">Total de Pedidos</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="summary-content">
+                        <span class="summary-number">{{ pedidos|selectattr('status', 'equalto', 'pendente')|list|length }}</span>
+                        <span class="summary-label">Pendentes</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="summary-content">
+                        <span class="summary-number">{{ pedidos|selectattr('status', 'equalto', 'concluido')|list|length }}</span>
+                        <span class="summary-label">Concluídos</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="summary-content">
+                        <span class="summary-number">R$ {{ "%.2f"|format(pedidos|sum(attribute='total')) }}</span>
+                        <span class="summary-label">Total Gasto</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="orders-list">
+                {% for pedido in pedidos %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Pedido #{{ pedido.numero_pedido }}</h3>
+                            <span class="order-date">{{ pedido.data_pedido.strftime('%d/%m/%Y às %H:%M') }}</span>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge status-{{ pedido.status }}">
+                                {% if pedido.status == 'pendente' %}
+                                    <i class="fas fa-clock"></i>
+                                {% elif pedido.status == 'preparando' %}
+                                    <i class="fas fa-cog"></i>
+                                {% elif pedido.status == 'pronto' %}
+                                    <i class="fas fa-check"></i>
+                                {% elif pedido.status == 'entregando' %}
+                                    <i class="fas fa-truck"></i>
+                                {% elif pedido.status == 'concluido' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif pedido.status == 'cancelado' %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% endif %}
+                                {{ pedido.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-details">
+                        <div class="order-items">
+                            <h4>Itens do Pedido</h4>
+                            {% for item in pedido.itens %}
+                            <div class="order-item">
+                                <div class="item-info">
+                                    <span class="item-name">{{ item.doce.nome }}</span>
+                                    <span class="item-quantity">{{ item.quantidade }}x</span>
+                                </div>
+                                <div class="item-price">
+                                    R$ {{ "%.2f"|format(item.preco_total) }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="order-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span>R$ {{ "%.2f"|format(pedido.total) }}</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span>R$ {{ "%.2f"|format(pedido.total) }}</span>
+                            </div>
+                        </div>
+                        
+                        {% if pedido.observacoes %}
+                        <div class="order-notes">
+                            <h4>Observações</h4>
+                            <p>{{ pedido.observacoes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="order-actions">
+                        <a href="{{ url_for('usuarios.detalhes_pedido', pedido_id=pedido.id) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i>
+                            Ver Detalhes
+                        </a>
+                        {% if pedido.status == 'pendente' %}
+                        <form method="POST" action="{{ url_for('usuarios.cancelar_pedido', pedido_id=pedido.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="cancelarPedido('{{ pedido.id }}')">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h3>Nenhum pedido encontrado</h3>
+                <p>Você ainda não fez nenhum pedido. Que tal começar agora?</p>
+                <a href="{{ url_for('loja.index') }}" class="btn btn-outline">
+                    <i class="fas fa-shopping-cart"></i>
+                    Fazer Primeiro Pedido
+                </a>
+            </div>
+        {% endif %}
+        
+        <div class="back-actions">
+            <a href="{{ url_for('usuarios.minha_conta') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Voltar para Minha Conta
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelarPedido(pedidoId) {
+    showConfirm('Tem certeza que deseja cancelar este pedido?', 'Cancelar Pedido', 'fas fa-times-circle').then(function(result) {
+        if (result) {
+            // Enviar formulário de cancelamento
+            const form = document.querySelector(`form[action*="/pedido/${pedidoId}/cancelar"]`);
+            if (form) {
+                form.submit();
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

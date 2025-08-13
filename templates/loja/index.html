@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Pasta Art Encanto - Doces Personalizados{% endblock %}
+
+{% block content %}
+
+<!-- Products Categories Section -->
+<section id="produtos" class="products-categories-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">{{ config.produtos_titulo or 'Nossos Doces' }}</h2>
+            <p class="section-subtitle">{{ config.produtos_subtitulo or 'Escolha a categoria que melhor atende suas necessidades' }}</p>
+        </div>
+
+        <div class="categories-grid">
+            <!-- Categoria Tradicional -->
+            <div class="category-card">
+                <div class="category-image-tradicional" data-bg-image="{{ url_for('static', filename=config.card_tradicional_image or 'images/doces_tradicionais.png') }}">
+                    <div class="category-overlay">
+                        <h3 class="category-title">{{ config.tradicional_title or 'Doces Tradicionais' }}</h3>
+                        <p class="category-sub">{{ config.tradicional_description or 'Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados. Perfeitos para qualquer momento do dia.' }}</p>
+                        <a href="{{ url_for('loja.doces_tradicionais') }}" class="btn btn-ghost">
+                            <i class="fas fa-utensils"></i>
+                            Ver categoria
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="category-features">
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>Receitas tradicionais</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>Ingredientes naturais</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>Pronto para consumo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categoria Personalizado -->
+            <div class="category-card">
+                <div class="category-image-personalizado" data-bg-image="{{ url_for('static', filename=config.card_personalizado_image or 'images/doces_personalizados.png') }}">
+                    <div class="category-overlay">
+                        <h3 class="category-title">{{ config.personalizado_title or 'Doces Personalizados' }}</h3>
+                        <p class="category-sub">{{ config.personalizado_description or 'Doces únicos e personalizados para seus eventos especiais. Aniversários, casamentos, eventos corporativos e muito mais.' }}</p>
+                        <a href="{{ url_for('loja.doces_personalizados') }}" class="btn btn-ghost">
+                            <i class="fas fa-palette"></i>
+                            Ver categoria
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="category-features">
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>Design personalizado</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>Para eventos especiais</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>Consultoria gratuita</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="about-section">
+    <div class="container">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>{{ config.about_title or 'Sobre a Pasta Art Encanto' }}</h2>
+                <p>{{ config.about_description or 'Somos uma confeitaria especializada em doces personalizados, criando momentos únicos e saborosos para suas celebrações mais especiais. Cada doce é preparado com ingredientes selecionados e muito amor, garantindo qualidade e sabor incomparáveis.' }}</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-heart"></i>
+                        <span>Feito com amor</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-leaf"></i>
+                        <span>Ingredientes naturais</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-palette"></i>
+                        <span>Personalização total</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Smooth scroll para seção de produtos
+const productLink = document.querySelector('a[href="#produtos"]');
+if (productLink) {
+    productLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('produtos').scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+}
+
+// Aplicar imagens de fundo dinamicamente
+document.addEventListener('DOMContentLoaded', function() {
+    const tradicionalImage = document.querySelector('.category-image-tradicional');
+    const personalizadoImage = document.querySelector('.category-image-personalizado');
+    
+    if (tradicionalImage && tradicionalImage.dataset.bgImage) {
+        tradicionalImage.style.background = `url('${tradicionalImage.dataset.bgImage}') no-repeat center center`;
+        tradicionalImage.style.backgroundSize = 'cover';
+    }
+    
+    if (personalizadoImage && personalizadoImage.dataset.bgImage) {
+        personalizadoImage.style.background = `url('${personalizadoImage.dataset.bgImage}') no-repeat center center`;
+        personalizadoImage.style.backgroundSize = 'cover';
+    }
+});
+</script>
+{% endblock %}

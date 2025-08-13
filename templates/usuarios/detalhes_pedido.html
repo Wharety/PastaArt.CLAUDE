@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido #{{ pedido.numero_pedido }} - {{ config.site_nome or 'Pasta Art Encanto' }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="order-details-container">
+        <div class="order-details-header">
+            <div class="header-content">
+                <h1>Pedido #{{ pedido.numero_pedido }}</h1>
+                <p>Detalhes completos do seu pedido</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('usuarios.meus_pedidos') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar aos Pedidos
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash messages são exibidas globalmente no template base -->
+
+        <div class="order-details-grid">
+            <!-- Informações do Pedido -->
+            <div class="order-info-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> Informações do Pedido</h3>
+                </div>
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="info-label">Número do Pedido:</span>
+                        <span class="info-value">#{{ pedido.numero_pedido }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Data do Pedido:</span>
+                        <span class="info-value">{{ pedido.data_pedido.strftime('%d/%m/%Y às %H:%M') }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="status-badge status-{{ pedido.status }}">
+                            {% if pedido.status == 'pendente' %}
+                                <i class="fas fa-clock"></i>
+                            {% elif pedido.status == 'preparando' %}
+                                <i class="fas fa-cog"></i>
+                            {% elif pedido.status == 'pronto' %}
+                                <i class="fas fa-check"></i>
+                            {% elif pedido.status == 'entregando' %}
+                                <i class="fas fa-truck"></i>
+                            {% elif pedido.status == 'concluido' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif pedido.status == 'cancelado' %}
+                                <i class="fas fa-times-circle"></i>
+                            {% endif %}
+                            {{ pedido.status|title }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Total:</span>
+                        <span class="info-value total-value">R$ {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                    {% if pedido.observacoes %}
+                    <div class="info-row">
+                        <span class="info-label">Observações:</span>
+                        <span class="info-value">{{ pedido.observacoes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Itens do Pedido -->
+            <div class="order-items-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shopping-cart"></i> Itens do Pedido</h3>
+                </div>
+                <div class="card-content">
+                    {% for item in pedido.itens %}
+                    <div class="order-item">
+                        <div class="item-image">
+                            {% if item.doce.imagem %}
+                            <img src="{{ url_for('static', filename='uploads/' + item.doce.imagem) }}" 
+                                 alt="{{ item.doce.nome }}" class="product-thumb">
+                            {% else %}
+                            <div class="product-thumb-placeholder">
+                                <i class="fas fa-birthday-cake"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <h4 class="item-name">{{ item.doce.nome }}</h4>
+                            {% if item.sabor_selecionado %}
+                            <div class="item-selected-flavor">
+                                <span class="flavor-label">Sabor escolhido:</span>
+                                <span class="flavor-tag selected">{{ item.sabor_selecionado }}</span>
+                            </div>
+                            {% elif item.doce.sabores %}
+                            <div class="item-flavors">
+                                <span class="flavor-label">Sabores disponíveis:</span>
+                                {% for sabor in item.doce.get_sabores_list() %}
+                                <span class="flavor-tag">{{ sabor }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="item-specs">
+                                <span class="item-quantity">{{ item.quantidade }}x</span>
+                                <span class="item-unit-price">R$ {{ "%.2f"|format(item.preco_unitario) }} cada</span>
+                            </div>
+                        </div>
+                        <div class="item-total">
+                            <span class="total-amount">R$ {{ "%.2f"|format(item.preco_total) }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Resumo Financeiro -->
+            <div class="order-summary-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calculator"></i> Resumo Financeiro</h3>
+                </div>
+                <div class="card-content">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>R$ {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Taxa de Entrega:</span>
+                        <span>A combinar</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>R$ {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Timeline -->
+            <div class="order-timeline-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> Histórico do Pedido</h3>
+                </div>
+                <div class="card-content">
+                    <div class="timeline">
+                        <div class="timeline-item active">
+                            <div class="timeline-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Pedido Realizado</h4>
+                                <p>{{ pedido.data_pedido.strftime('%d/%m/%Y às %H:%M') }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if pedido.status != 'pendente' %}
+                        <div class="timeline-item active">
+                            <div class="timeline-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Em Preparação</h4>
+                                <p>Seu pedido está sendo preparado</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if pedido.status in ['pronto', 'entregando', 'concluido'] %}
+                        <div class="timeline-item active">
+                            <div class="timeline-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Pronto</h4>
+                                <p>Seu pedido está pronto para entrega</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if pedido.status in ['entregando', 'concluido'] %}
+                        <div class="timeline-item active">
+                            <div class="timeline-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Em Entrega</h4>
+                                <p>Seu pedido está a caminho</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if pedido.status == 'concluido' %}
+                        <div class="timeline-item active">
+                            <div class="timeline-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Entregue</h4>
+                                <p>Pedido entregue com sucesso!</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if pedido.status == 'cancelado' %}
+                        <div class="timeline-item cancelled">
+                            <div class="timeline-icon">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Cancelado</h4>
+                                <p>Pedido cancelado</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações do Pedido -->
+        <div class="order-actions">
+            {% if pedido.status == 'pendente' %}
+            <form method="POST" action="{{ url_for('usuarios.cancelar_pedido', pedido_id=pedido.id) }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn btn-outline-danger" onclick="cancelarPedido('{{ pedido.id }}')">
+                    <i class="fas fa-times"></i>
+                    Cancelar Pedido
+                </button>
+            </form>
+            {% endif %}
+            
+            <a href="{{ url_for('loja.index') }}" class="btn btn-primary">
+                <i class="fas fa-shopping-cart"></i>
+                Fazer Novo Pedido
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelarPedido(pedidoId) {
+    showConfirm('Tem certeza que deseja cancelar este pedido?', 'Cancelar Pedido', 'fas fa-times-circle').then(function(result) {
+        if (result) {
+            // Enviar formulário de cancelamento
+            const form = document.querySelector(`form[action*="/pedido/${pedidoId}/cancelar"]`);
+            if (form) {
+                form.submit();
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

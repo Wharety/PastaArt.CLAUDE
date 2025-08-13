@@ -1,0 +1,236 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Lixeira de Pedidos - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <div class="page-title-section">
+            <h1 class="admin-page-title">
+                <i class="fas fa-trash"></i>
+                Lixeira de Pedidos
+            </h1>
+            <p class="admin-page-subtitle">Pedidos removidos que podem ser restaurados</p>
+        </div>
+        
+        <div class="page-actions">
+            <a href="{{ url_for('admin.listar_pedidos') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                Voltar aos Pedidos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas Rápidas -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-trash"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_pedidos_removidos }}</h3>
+            <p>Pedidos Removidos</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-list"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_pedidos_ativos }}</h3>
+            <p>Pedidos Ativos</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="admin-section">
+    <div class="section-header">
+        <h2 class="section-title">Filtros</h2>
+    </div>
+    
+    <div class="filters-container">
+        <form method="GET" action="{{ url_for('admin.lixeira_pedidos') }}" class="filters-form">
+            <div class="filter-group">
+                <label for="cliente_nome">Cliente:</label>
+                <input type="text" 
+                       name="cliente_nome" 
+                       id="cliente_nome" 
+                       class="form-control" 
+                       placeholder="Digite o nome do cliente"
+                       value="{{ cliente_nome_filter or '' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="status">Status:</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="">Todos os Status</option>
+                    <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="preparando" {% if status_filter == 'preparando' %}selected{% endif %}>Preparando</option>
+                    <option value="pronto" {% if status_filter == 'pronto' %}selected{% endif %}>Pronto</option>
+                    <option value="entregando" {% if status_filter == 'entregando' %}selected{% endif %}>Entregando</option>
+                    <option value="concluido" {% if status_filter == 'concluido' %}selected{% endif %}>Concluído</option>
+                    <option value="cancelado" {% if status_filter == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="data">Período:</label>
+                <select name="data" id="data" class="form-control">
+                    <option value="">Todos os Períodos</option>
+                    <option value="hoje" {% if data_filter == 'hoje' %}selected{% endif %}>Hoje</option>
+                    <option value="semana" {% if data_filter == 'semana' %}selected{% endif %}>Última Semana</option>
+                </select>
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                    Filtrar
+                </button>
+                <a href="{{ url_for('admin.lixeira_pedidos') }}" class="btn btn-outline">
+                    <i class="fas fa-times"></i>
+                    Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Pedidos -->
+<div class="admin-section">
+    <div class="section-header">
+        <h2 class="section-title">Pedidos Removidos</h2>
+        <div class="section-actions">
+            <span class="pedidos-count">{{ pedidos|length }} pedido(s) encontrado(s)</span>
+        </div>
+    </div>
+    
+    {% if pedidos %}
+    <div class="pedidos-list">
+        {% for pedido in pedidos %}
+        <div class="pedido-card removed">
+            <div class="pedido-header">
+                <div class="pedido-info">
+                    <h3 class="pedido-numero">#{{ pedido.numero_pedido }}</h3>
+                    <div class="pedido-meta">
+                        <span class="pedido-cliente">
+                            <i class="fas fa-user"></i> {{ pedido.usuario.nome }}
+                        </span>
+                        <span class="pedido-data">
+                            <i class="fas fa-calendar"></i> {{ pedido.data_pedido.strftime('%d/%m/%Y %H:%M') }}
+                        </span>
+                        <span class="pedido-removido">
+                            <i class="fas fa-trash"></i> Removido em: {{ pedido.data_remocao.strftime('%d/%m/%Y %H:%M') if pedido.data_remocao else 'N/A' }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="pedido-status">
+                    <span class="status-badge status-{{ pedido.status }}">
+                        {% if pedido.status == 'pendente' %}
+                            <i class="fas fa-clock"></i>
+                        {% elif pedido.status == 'preparando' %}
+                            <i class="fas fa-cog"></i>
+                        {% elif pedido.status == 'pronto' %}
+                            <i class="fas fa-check"></i>
+                        {% elif pedido.status == 'entregando' %}
+                            <i class="fas fa-truck"></i>
+                        {% elif pedido.status == 'concluido' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif pedido.status == 'cancelado' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                        {{ pedido.status.title() }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="pedido-content">
+                <div class="pedido-items">
+                    {% for item in pedido.itens %}
+                    <div class="item">
+                        <span class="item-nome">{{ item.doce.nome }}</span>
+                        <span class="item-quantidade">{{ item.quantidade }}x</span>
+                        <span class="item-preco">R$ {{ "%.2f"|format(item.preco_unitario) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="pedido-total">
+                    <strong>Total: R$ {{ "%.2f"|format(pedido.total) }}</strong>
+                </div>
+            </div>
+            
+            <div class="pedido-actions">
+                <form method="POST" action="{{ url_for('admin.restaurar_pedido', pedido_id=pedido.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-success btn-small">
+                        <i class="fas fa-undo"></i>
+                        Restaurar
+                    </button>
+                </form>
+                
+                <form method="POST" action="{{ url_for('admin.excluir_pedido_permanente', pedido_id=pedido.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger btn-small">
+                        <i class="fas fa-trash"></i>
+                        Excluir Permanentemente
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-trash"></i>
+        </div>
+        <h3>Lixeira Vazia</h3>
+        <p>Não há pedidos removidos para exibir.</p>
+        <a href="{{ url_for('admin.listar_pedidos') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i>
+            Voltar aos Pedidos
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Animação dos cards de pedidos
+const pedidoCards = document.querySelectorAll('.pedido-card');
+pedidoCards.forEach((card, index) => {
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, index * 100);
+});
+
+// Adicionar animação inicial
+pedidoCards.forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.3s ease';
+});
+
+// Melhorar confirmações
+document.querySelectorAll('form[action*="restaurar"] button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        if (!confirm('Tem certeza que deseja restaurar este pedido?')) {
+            e.preventDefault();
+        }
+    });
+});
+
+document.querySelectorAll('form[action*="excluir-permanente"] button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        if (!confirm('Tem certeza que deseja excluir permanentemente este pedido?\n\nEsta ação não pode ser desfeita.')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

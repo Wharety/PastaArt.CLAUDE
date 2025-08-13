@@ -1,0 +1,438 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if doce %}Editar{% else %}Novo{% endif %} Produto - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <div class="page-title-section">
+            <h1 class="admin-page-title">
+                <i class="fas fa-{% if doce %}edit{% else %}plus{% endif %}"></i>
+                {% if doce %}Editar Produto{% else %}Novo Produto{% endif %}
+            </h1>
+            <p class="admin-page-subtitle">
+                {% if doce %}Atualize as informações do doce{% else %}Adicione um novo doce ao catálogo{% endif %}
+            </p>
+        </div>
+        
+        <div class="page-actions">
+            <a href="{{ url_for('admin.listar_doces') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+                        <form method="POST" enctype="multipart/form-data" class="product-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-grid">
+            <!-- Informações Básicas -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    {{ config.admin_form_info_basicas or 'Informações Básicas' }}
+                </h3>
+                
+                <div class="form-group">
+                    <label for="nome" class="form-label">{{ config.admin_form_nome_produto or 'Nome do Produto' }} *</label>
+                    <input type="text" 
+                           id="nome" 
+                           name="nome" 
+                           required 
+                           class="form-control"
+                           value="{{ doce.nome if doce else '' }}"
+                           placeholder="{{ config.admin_form_placeholder_nome or 'Ex: Brigadeiro Gourmet de Chocolate' }}">
+                    <small class="form-hint">{{ config.admin_form_hint_nome or 'Escolha um nome atrativo e descritivo' }}</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao" class="form-label">{{ config.admin_form_descricao or 'Descrição' }} *</label>
+                    <textarea id="descricao" 
+                              name="descricao" 
+                              required 
+                              class="form-control" 
+                              rows="4"
+                              placeholder="{{ config.admin_form_placeholder_descricao or 'Descreva os sabores, ingredientes e ocasiões especiais...' }}">{{ doce.descricao if doce else '' }}</textarea>
+                    <small class="form-hint">{{ config.admin_form_hint_descricao or 'Descreva detalhes que atraiam os clientes' }}</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="preco" class="form-label">Preço (R$) *</label>
+                        <div class="price-input">
+                            <span class="price-symbol">R$</span>
+                            <input type="number" 
+                                   id="preco" 
+                                   name="preco" 
+                                   required 
+                                   step="0.01" 
+                                   min="0"
+                                   class="form-control"
+                                   value="{{ doce.preco if doce else '' }}"
+                                   placeholder="0,00">
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quantidade_minima" class="form-label">Quantidade Mínima *</label>
+                        <input type="number" 
+                               id="quantidade_minima" 
+                               name="quantidade_minima" 
+                               required 
+                               min="1"
+                               class="form-control"
+                               value="{{ doce.quantidade_minima if doce else '1' }}"
+                               placeholder="1">
+                        <small class="form-hint">Quantidade mínima para venda</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unidade_venda" class="form-label">Unidade de Venda</label>
+                        <select id="unidade_venda" name="unidade_venda" class="form-control">
+                            <option value="unidade" {% if not doce or doce.unidade_venda == 'unidade' %}selected{% endif %}>Unidade</option>
+                            <option value="kg" {% if doce and doce.unidade_venda == 'kg' %}selected{% endif %}>Quilograma (kg)</option>
+                            <option value="g" {% if doce and doce.unidade_venda == 'g' %}selected{% endif %}>Grama (g)</option>
+                            <option value="caixa" {% if doce and doce.unidade_venda == 'caixa' %}selected{% endif %}>Caixa</option>
+                            <option value="bandeja" {% if doce and doce.unidade_venda == 'bandeja' %}selected{% endif %}>Bandeja</option>
+                            <option value="kit" {% if doce and doce.unidade_venda == 'kit' %}selected{% endif %}>Kit</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoria" class="form-label">Categoria *</label>
+                    <select id="categoria" name="categoria" class="form-control" required>
+                        <option value="tradicional" {% if not doce or doce.categoria == 'tradicional' %}selected{% endif %}>Tradicional</option>
+                        <option value="personalizado" {% if doce and doce.categoria == 'personalizado' %}selected{% endif %}>Personalizado</option>
+                    </select>
+                    <small class="form-hint">Categoria do produto para organização da loja</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="sabores" class="form-label">Sabores Disponíveis</label>
+                    <textarea id="sabores" 
+                              name="sabores" 
+                              class="form-control" 
+                              rows="3"
+                              placeholder="Ex: Chocolate, Morango, Limão, Baunilha, Pistache...">{{ doce.sabores if doce else '' }}</textarea>
+                    <small class="form-hint">Separe os sabores por vírgula. Deixe em branco se não aplicável.</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="estoque_disponivel" class="form-label">Estoque Disponível</label>
+                        <input type="number" 
+                               id="estoque_disponivel" 
+                               name="estoque_disponivel" 
+                               min="0"
+                               class="form-control"
+                               value="{{ doce.estoque_disponivel if doce else '' }}"
+                               placeholder="Deixe em branco para estoque ilimitado">
+                        <small class="form-hint">Controle de estoque. Deixe em branco para estoque ilimitado.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destaque" class="form-label">Produto em Destaque</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" 
+                                       id="destaque" 
+                                       name="destaque" 
+                                       value="1"
+                                       {% if doce and doce.destaque %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Destacar na loja
+                            </label>
+                        </div>
+                        <small class="form-hint">Produtos em destaque aparecem primeiro</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ativo" class="form-label">Status</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" 
+                                   id="ativo" 
+                                   name="ativo" 
+                                   value="1"
+                                   {% if not doce or doce.ativo %}checked{% endif %}>
+                            <span class="checkmark"></span>
+                            Produto ativo na loja
+                        </label>
+                    </div>
+                    <small class="form-hint">Produtos inativos não aparecem para os clientes</small>
+                </div>
+            </div>
+
+            <!-- Upload de Imagem -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-camera"></i>
+                    Imagem do Produto
+                </h3>
+                
+                {% if doce and doce.imagem_url %}
+                <div class="current-image">
+                    <label class="form-label">Imagem Atual</label>
+                    <div class="image-preview">
+                        <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" id="current-image">
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="imagem" class="form-label">
+                        {% if doce and doce.imagem_url %}Nova Imagem{% else %}Imagem{% endif %}
+                    </label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" 
+                               id="imagem" 
+                               name="imagem" 
+                               accept="image/*"
+                               class="file-input">
+                        <label for="imagem" class="file-upload-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span class="file-upload-text">Clique para selecionar uma imagem</span>
+                        </label>
+                    </div>
+                    <small class="form-hint">Formatos aceitos: JPG, PNG, GIF, WebP (máx. 16MB)</small>
+                    
+                    <div id="image-preview" class="image-preview" style="display: none;">
+                        <img id="preview-img" alt="Preview">
+                        <button type="button" class="remove-preview" onclick="removeImagePreview()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions">
+            <div class="action-buttons">
+                <a href="{{ url_for('admin.listar_doces') }}" class="btn btn-outline btn-large">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </a>
+                
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-save"></i>
+                    {% if doce %}Atualizar Produto{% else %}Criar Produto{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Preview de Como Ficará na Loja -->
+<div class="product-preview-section">
+    <h3 class="form-section-title">
+        <i class="fas fa-eye"></i>
+        Preview da Loja
+    </h3>
+    <div class="product-card preview-card">
+        <div class="product-image" id="preview-product-image">
+            {% if doce and doce.imagem_url %}
+                <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}">
+            {% else %}
+                <div class="product-placeholder">
+                    <i class="fas fa-birthday-cake"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="product-info">
+            <h3 class="product-name" id="preview-name">{{ doce.nome if doce else 'Nome do Produto' }}</h3>
+            <p class="product-description" id="preview-description">{{ doce.descricao if doce else 'Descrição do produto aparecerá aqui...' }}</p>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Preview da imagem
+document.getElementById('imagem').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('image-preview').style.display = 'block';
+            updateProductPreview();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function removeImagePreview() {
+    document.getElementById('imagem').value = '';
+    document.getElementById('image-preview').style.display = 'none';
+    updateProductPreview();
+}
+
+// Atualizar preview em tempo real
+function updateProductPreview() {
+    const nome = document.getElementById('nome').value || 'Nome do Produto';
+    const descricao = document.getElementById('descricao').value || 'Descrição do produto aparecerá aqui...';
+    const preco = document.getElementById('preco').value || '0.00';
+    const sabores = document.getElementById('sabores') ? document.getElementById('sabores').value : '';
+    const quantidadeMinima = document.getElementById('quantidade_minima').value || '1';
+    const unidadeVenda = document.getElementById('unidade_venda').value || 'unidade';
+    const categoria = document.getElementById('categoria_id') ? document.getElementById('categoria_id').value : '';
+    
+    // Atualizar nome
+    document.getElementById('preview-name').textContent = nome;
+    
+    // Atualizar descrição (limitada para preview)
+    const descricaoPreview = descricao.length > 80 ? descricao.substring(0, 80) + '...' : descricao;
+    document.getElementById('preview-description').textContent = descricaoPreview;
+    
+    // Preço removido do preview conforme solicitação do usuário
+    
+    // Atualizar imagem do preview
+    const previewImg = document.getElementById('preview-img');
+    const productImage = document.getElementById('preview-product-image');
+    
+    if (previewImg && previewImg.src && previewImg.src !== window.location.href) {
+        productImage.innerHTML = `<img src="${previewImg.src}" alt="${nome}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else if (!productImage.querySelector('img')) {
+        productImage.innerHTML = '<div class="product-placeholder"><i class="fas fa-birthday-cake"></i></div>';
+    }
+    
+    // Adicionar efeito visual de atualização
+    const previewCard = document.querySelector('.preview-card');
+    if (previewCard) {
+        previewCard.style.transform = 'scale(0.98)';
+        previewCard.style.transition = 'transform 0.1s ease';
+        setTimeout(() => {
+            previewCard.style.transform = 'scale(1)';
+        }, 100);
+    }
+}
+
+// Atualizar status do preview (ativo/destaque)
+function updatePreviewStatus() {
+    const previewCard = document.querySelector('.preview-card');
+    const ativoField = document.getElementById('ativo');
+    const destaqueField = document.getElementById('destaque');
+    
+    if (previewCard) {
+        // Remover classes anteriores
+        previewCard.classList.remove('preview-inactive', 'preview-featured');
+        
+        // Adicionar classes baseadas no status
+        if (ativoField && !ativoField.checked) {
+            previewCard.classList.add('preview-inactive');
+        }
+        
+        if (destaqueField && destaqueField.checked) {
+            previewCard.classList.add('preview-featured');
+        }
+    }
+}
+
+// Event listeners para atualização em tempo real
+document.addEventListener('DOMContentLoaded', function() {
+    // Atualizar preview inicial
+    updateProductPreview();
+    updatePreviewStatus();
+    
+    // Event listeners para campos básicos
+    const nomeField = document.getElementById('nome');
+    const descricaoField = document.getElementById('descricao');
+    const precoField = document.getElementById('preco');
+    const categoriaField = document.getElementById('categoria_id');
+    const quantidadeField = document.getElementById('quantidade_minima');
+    const unidadeField = document.getElementById('unidade_venda');
+    
+    if (nomeField) nomeField.addEventListener('input', updateProductPreview);
+    if (descricaoField) descricaoField.addEventListener('input', updateProductPreview);
+    if (precoField) precoField.addEventListener('input', updateProductPreview);
+    if (categoriaField) categoriaField.addEventListener('change', updateProductPreview);
+    if (quantidadeField) quantidadeField.addEventListener('input', updateProductPreview);
+    if (unidadeField) unidadeField.addEventListener('change', updateProductPreview);
+    
+    // Event listener para sabores (se existir)
+    const saboresField = document.getElementById('sabores');
+    if (saboresField) saboresField.addEventListener('input', updateProductPreview);
+    
+    // Event listener para status (ativo/inativo)
+    const ativoField = document.getElementById('ativo');
+    if (ativoField) ativoField.addEventListener('change', updatePreviewStatus);
+    
+    // Event listener para destaque
+    const destaqueField = document.getElementById('destaque');
+    if (destaqueField) destaqueField.addEventListener('change', updatePreviewStatus);
+});
+
+// Validação do formulário
+document.querySelector('.product-form').addEventListener('submit', function(e) {
+    const nome = document.getElementById('nome').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const preco = document.getElementById('preco').value;
+    
+    if (!nome || !descricao || !preco) {
+        e.preventDefault();
+        showAlert('Por favor, preencha todos os campos obrigatórios.', 'Campos Obrigatórios', 'fas fa-exclamation-triangle');
+        return;
+    }
+    
+    if (parseFloat(preco) <= 0) {
+        e.preventDefault();
+        showAlert('O preço deve ser maior que zero.', 'Preço Inválido', 'fas fa-exclamation-triangle');
+        return;
+    }
+    
+    // Loading state
+    const btn = this.querySelector('button[type="submit"]');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    btn.disabled = true;
+});
+
+// Auto-focus no primeiro campo
+document.getElementById('nome').focus();
+
+// Contador de caracteres para descrição
+const descricaoField = document.getElementById('descricao');
+const maxLength = 500;
+
+descricaoField.addEventListener('input', function() {
+    const current = this.value.length;
+    const remaining = maxLength - current;
+    
+    // Criar contador se não existir
+    let counter = this.parentNode.querySelector('.char-counter');
+    if (!counter) {
+        counter = document.createElement('small');
+        counter.className = 'char-counter form-hint';
+        this.parentNode.appendChild(counter);
+    }
+    
+    counter.textContent = `${current}/${maxLength} caracteres`;
+    counter.style.color = remaining < 50 ? '#e74c3c' : '#6c757d';
+});
+
+// Formatar preço enquanto digita
+document.getElementById('preco').addEventListener('input', function() {
+    let value = this.value;
+    if (value && !isNaN(value)) {
+        // Limitar a 2 casas decimais
+        if (value.includes('.')) {
+            const parts = value.split('.');
+            if (parts[1] && parts[1].length > 2) {
+                this.value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

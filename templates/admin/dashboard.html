@@ -1,0 +1,257 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+            <h1 class="admin-page-title">
+            <i class="fas fa-tachometer-alt"></i>
+            {{ config.dashboard_titulo or 'Dashboard' }}
+        </h1>
+        <p class="admin-page-subtitle">{{ config.dashboard_subtitulo or 'Visão geral da sua loja' }}</p>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-birthday-cake"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_doces }}</h3>
+            <p>{{ config.dashboard_total_produtos or 'Total de Produtos' }}</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-eye"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ doces_ativos }}</h3>
+            <p>{{ config.dashboard_produtos_ativos or 'Produtos Ativos' }}</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-eye-slash"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_doces - doces_ativos }}</h3>
+            <p>{{ config.dashboard_produtos_inativos or 'Produtos Inativos' }}</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ pedidos_hoje }}</h3>
+            <p>{{ config.dashboard_pedidos_hoje or 'Pedidos Hoje' }}</p>
+            {% if pedidos_pendentes_hoje > 0 %}
+            <small class="stat-note">{{ pedidos_pendentes_hoje }} {{ config.dashboard_pedidos_pendentes or 'pendentes' }}</small>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-list"></i>
+        </div>
+        <div class="stat-content">
+            <h3>{{ total_pedidos }}</h3>
+            <p>Total de Pedidos</p>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="admin-section">
+    <h2 class="section-title">Ações Rápidas</h2>
+    <div class="quick-actions">
+        <a href="{{ url_for('admin.novo_doce') }}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <div class="action-content">
+                <h3>{{ config.dashboard_novo_produto_titulo or 'Novo Produto' }}</h3>
+                <p>{{ config.dashboard_novo_produto_descricao or 'Adicionar um novo doce ao catálogo' }}</p>
+            </div>
+        </a>
+        
+        <a href="{{ url_for('admin.listar_doces') }}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="action-content">
+                <h3>{{ config.dashboard_gerenciar_produtos_titulo or 'Gerenciar Produtos' }}</h3>
+                <p>{{ config.dashboard_gerenciar_produtos_descricao or 'Ver e editar produtos existentes' }}</p>
+            </div>
+        </a>
+        
+        <a href="{{ url_for('admin.listar_pedidos') }}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="action-content">
+                <h3>{{ config.dashboard_ver_pedidos_titulo or 'Ver Pedidos' }}</h3>
+                <p>{{ config.dashboard_ver_pedidos_descricao or 'Gerenciar todos os pedidos da loja' }}</p>
+            </div>
+        </a>
+        
+        <a href="{{ url_for('loja.index') }}" target="_blank" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-external-link-alt"></i>
+            </div>
+            <div class="action-content">
+                <h3>{{ config.dashboard_ver_loja_titulo or 'Ver Loja' }}</h3>
+                <p>{{ config.dashboard_ver_loja_descricao or 'Visualizar como os clientes veem sua loja' }}</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Pedidos Recentes -->
+{% if pedidos_recentes %}
+<div class="admin-section">
+    <div class="section-header">
+        <h2 class="section-title">{{ config.dashboard_pedidos_recentes_titulo or 'Pedidos Recentes' }}</h2>
+        <a href="{{ url_for('admin.listar_pedidos') }}" class="btn btn-outline">
+            <i class="fas fa-list"></i> {{ config.dashboard_ver_todos or 'Ver Todos' }}
+        </a>
+    </div>
+    
+    <div class="recent-orders">
+        {% for pedido in pedidos_recentes %}
+        <div class="order-mini-card">
+            <div class="order-mini-header">
+                <div class="order-mini-info">
+                    <h4>Pedido #{{ pedido.numero_pedido }}</h4>
+                    <p class="order-mini-date">{{ pedido.data_pedido.strftime('%d/%m/%Y às %H:%M') }}</p>
+                    <p class="order-mini-customer">{{ pedido.usuario.nome }}</p>
+                </div>
+                <div class="order-mini-status">
+                    <span class="status-badge status-{{ pedido.status }}">
+                        {% if pedido.status == 'pendente' %}
+                            <i class="fas fa-clock"></i>
+                        {% elif pedido.status == 'preparando' %}
+                            <i class="fas fa-cog"></i>
+                        {% elif pedido.status == 'pronto' %}
+                            <i class="fas fa-check"></i>
+                        {% elif pedido.status == 'entregando' %}
+                            <i class="fas fa-truck"></i>
+                        {% elif pedido.status == 'concluido' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif pedido.status == 'cancelado' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                        {{ pedido.status|title }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="order-mini-details">
+                <div class="order-mini-items">
+                    {% for item in pedido.itens[:2] %}
+                    <span class="order-mini-item">{{ item.doce.nome }} ({{ item.quantidade }}x)</span>
+                    {% endfor %}
+                    {% if pedido.itens|length > 2 %}
+                    <span class="order-mini-more">+{{ pedido.itens|length - 2 }} {{ config.dashboard_mais or 'mais' }}</span>
+                    {% endif %}
+                </div>
+                <div class="order-mini-total">
+                    <strong>R$ {{ "%.2f"|format(pedido.total) }}</strong>
+                </div>
+            </div>
+            
+            <div class="order-mini-actions">
+                <a href="{{ url_for('admin.detalhes_pedido', pedido_id=pedido.id) }}" class="btn btn-small btn-outline">
+                    <i class="fas fa-eye"></i> {{ config.dashboard_ver_detalhes or 'Ver Detalhes' }}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Produtos Recentes -->
+<div class="admin-section">
+    <div class="section-header">
+        <h2 class="section-title">{{ config.dashboard_produtos_recentes_titulo or 'Produtos Recentes' }}</h2>
+        <a href="{{ url_for('admin.listar_doces') }}" class="btn btn-outline">
+            <i class="fas fa-list"></i> {{ config.dashboard_ver_todos or 'Ver Todos' }}
+        </a>
+    </div>
+    
+    {% if doces %}
+    <div class="recent-products">
+        {% for doce in doces[:6] %}
+        <div class="product-mini-card">
+            <div class="product-mini-image">
+                {% if doce.imagem_url %}
+                    <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}">
+                {% else %}
+                    <div class="product-mini-placeholder">
+                        <i class="fas fa-birthday-cake"></i>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="product-mini-info">
+                <h4>{{ doce.nome }}</h4>
+                <p class="product-mini-price">R$ {{ "%.2f"|format(doce.preco) }}</p>
+                <div class="product-mini-status">
+                    {% if doce.ativo %}
+                        <span class="status-badge status-active">Ativo</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Inativo</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="product-mini-actions">
+                <a href="{{ url_for('admin.editar_doce', doce_id=doce.id) }}" class="btn btn-small btn-outline">
+                    <i class="fas fa-edit"></i> {{ config.dashboard_editar or 'Editar' }}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-birthday-cake"></i>
+        <h3>Nenhum produto cadastrado</h3>
+        <p>Comece adicionando seu primeiro doce ao catálogo.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Atualizar estatísticas em tempo real (simulação)
+function updateStats() {
+    // Aqui você poderia fazer uma requisição AJAX para buscar dados atualizados
+    // Por enquanto, apenas uma animação visual
+}
+
+// Animação dos cards de estatísticas
+const statCards = document.querySelectorAll('.stat-card');
+statCards.forEach((card, index) => {
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, index * 100);
+});
+
+// Adicionar animação inicial
+statCards.forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.3s ease';
+});
+</script>
+{% endblock %}

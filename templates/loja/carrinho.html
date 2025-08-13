@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Carrinho de Compras - Pasta Art Encanto{% endblock %}
+
+{% block content %}
+<section class="cart-section">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-shopping-cart"></i>
+                Carrinho de Compras
+            </h1>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('loja.index') }}">Início</a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-current">Carrinho</span>
+            </nav>
+        </div>
+
+        {% if cart %}
+        <div class="cart-content">
+            <div class="cart-items">
+                <div class="cart-header">
+                    <h2>Seus Itens</h2>
+                </div>
+
+                {% for cart_key, item in cart.items() %}
+                <div class="cart-item">
+                    <div class="item-image">
+                        {% if item.imagem_url %}
+                            <img src="{{ url_for('static', filename=item.imagem_url) }}" alt="{{ item.nome }}">
+                        {% else %}
+                            <div class="item-placeholder">
+                                <i class="fas fa-birthday-cake"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-details">
+                        <h3 class="item-name">{{ item.nome }}</h3>
+                        <p class="item-price">R$ {{ "%.2f"|format(item.preco|float) }} cada</p>
+                        {% if item.sabor_selecionado %}
+                        <p class="item-flavor">
+                            <i class="fas fa-palette"></i>
+                            Sabor: <span class="flavor-tag">{{ item.sabor_selecionado }}</span>
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-quantity">
+                        <form method="POST" action="{{ url_for('loja.atualizar_carrinho') }}" class="quantity-update-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <label for="quantidade_{{ cart_key }}">Qtd:</label>
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn" onclick="updateQuantityAjax('{{ cart_key }}', -1)">-</button>
+                                <input type="number" 
+                                       id="quantidade_{{ cart_key }}" 
+                                       name="quantidade" 
+                                       value="{{ item.quantidade }}" 
+                                       min="1" 
+                                       max="50"
+                                       onchange="updateQuantityAjax('{{ cart_key }}', this.value)">
+                                <button type="button" class="quantity-btn" onclick="updateQuantityAjax('{{ cart_key }}', 1)">+</button>
+                            </div>
+                            <input type="hidden" name="cart_key" value="{{ cart_key }}">
+                        </form>
+                    </div>
+
+                    <div class="item-total" id="item_total_{{ cart_key }}">
+                        <strong>R$ {{ "%.2f"|format((item.preco|float) * (item.quantidade|int)) }}</strong>
+                    </div>
+
+                    <div class="item-actions">
+                        <a href="{{ url_for('loja.remover_carrinho', cart_key=cart_key) }}" 
+                           class="remove-btn">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <h3>Resumo do Pedido</h3>
+                    
+                    <div class="summary-line">
+                        <span>Subtotal:</span>
+                        <span id="cart_subtotal">R$ {{ "%.2f"|format(total|float) }}</span>
+                    </div>
+                    
+                    <div class="summary-line">
+                        <span>Entrega:</span>
+                        <span class="delivery-note">A combinar</span>
+                    </div>
+                    
+                    <div class="summary-total">
+                        <span>Total:</span>
+                        <span id="cart_total">R$ {{ "%.2f"|format(total|float) }}</span>
+                    </div>
+
+                    <div class="cart-actions">
+                        <a href="{{ url_for('loja.checkout') }}" class="btn btn-primary btn-large btn-full">
+                            <i class="fas fa-credit-card"></i>
+                            Finalizar Pedido
+                        </a>
+                        
+                        <a href="{{ url_for('loja.index') }}" class="btn btn-outline btn-large btn-full">
+                            <i class="fas fa-arrow-left"></i>
+                            Continuar Comprando
+                        </a>
+                    </div>
+                </div>
+            </div>      
+        </div>
+        {% else %}
+        <div class="empty-cart">
+            <div class="empty-cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h2>Seu carrinho está vazio</h2>
+            <p>Que tal explorar nossos deliciosos doces personalizados?</p>
+            <a href="{{ url_for('loja.index') }}" class="btn btn-primary btn-large">
+                <i class="fas fa-birthday-cake"></i>
+                Ver Produtos
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// AJAX para atualização de quantidade sem recarregar a página
+function updateQuantityAjax(cartKey, change) {
+    const input = document.getElementById('quantidade_' + cartKey);
+    let quantidade;
+    
+    // Prevenir múltiplas chamadas simultâneas
+    if (input.dataset.updating === 'true') {
+        return;
+    }
+    
+    if (typeof change === 'string') {
+        // Mudança direta do input
+        quantidade = parseInt(change);
+    } else {
+        // Incremento/decremento
+        const currentValue = parseInt(input.value);
+        quantidade = currentValue + change;
+    }
+    
+    if (quantidade < 1) {
+        showConfirm('Deseja remover este item do carrinho?', 'Remover Item', 'fas fa-trash').then(function(result) {
+            if (result) {
+                quantidade = 0;
+            } else {
+                input.value = 1;
+                return;
+            }
+        });
+    }
+    
+    if (quantidade > 50) {
+        quantidade = 50;
+    }
+    
+    // Atualizar visualmente primeiro para feedback imediato
+    if (quantidade > 0) {
+        input.value = quantidade;
+    }
+    
+    // Mostrar loading
+    const controls = input.closest('.quantity-controls');
+    const itemElement = input.closest('.cart-item');
+    controls.style.opacity = '0.6';
+    controls.style.pointerEvents = 'none';
+    input.dataset.updating = 'true';
+    
+    // Fazer requisição AJAX
+    fetch('{{ url_for("loja.atualizar_quantidade_ajax") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        },
+        body: JSON.stringify({
+            cart_key: cartKey,
+            quantidade: quantidade
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.item_removed) {
+                // Remover item com animação
+                itemElement.style.transition = 'all 0.3s ease';
+                itemElement.style.opacity = '0';
+                itemElement.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    itemElement.remove();
+                    
+                    // Verificar se o carrinho ficou vazio
+                    const remainingItems = document.querySelectorAll('.cart-item');
+                    if (remainingItems.length === 0) {
+                        location.reload(); // Recarregar para mostrar carrinho vazio
+                    }
+                }, 300);
+            } else {
+                // Atualizar totais
+                document.getElementById('item_total_' + cartKey).innerHTML = 
+                    '<strong>R$ ' + data.item_total + '</strong>';
+            }
+            
+            // Atualizar totais do carrinho
+            document.getElementById('cart_subtotal').textContent = 'R$ ' + data.cart_total;
+            document.getElementById('cart_total').textContent = 'R$ ' + data.cart_total;
+            
+            // Atualizar badge do carrinho no header
+            const cartBadge = document.querySelector('.cart-badge');
+            const cartBadgeFixed = document.querySelector('.cart-badge-fixed');
+            
+            if (cartBadge) {
+                if (data.cart_count > 0) {
+                    cartBadge.textContent = data.cart_count;
+                    cartBadge.style.display = 'flex';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            }
+            
+            if (cartBadgeFixed) {
+                if (data.cart_count > 0) {
+                    cartBadgeFixed.textContent = data.cart_count;
+                    cartBadgeFixed.style.display = 'flex';
+                } else {
+                    cartBadgeFixed.style.display = 'none';
+                }
+            }
+            
+            // Mostrar feedback visual de sucesso
+            if (!data.item_removed) {
+                input.style.backgroundColor = '#d4edda';
+                setTimeout(() => {
+                    input.style.backgroundColor = '';
+                }, 1000);
+            }
+            
+        } else {
+            // Erro na atualização - restaurar valor anterior
+            console.error('Erro ao atualizar quantidade:', data.error);
+            location.reload(); // Recarregar para sincronizar
+        }
+    })
+    .catch(error => {
+        console.error('Erro na requisição AJAX:', error);
+        location.reload(); // Recarregar em caso de erro
+    })
+    .finally(() => {
+        // Restaurar controles
+        controls.style.opacity = '1';
+        controls.style.pointerEvents = 'auto';
+        input.dataset.updating = 'false';
+    });
+}
+
+// Modal de confirmação personalizado
+function showConfirmModal(message, onConfirm, options = {}) {
+    const {
+        title = 'Confirmar Ação',
+        icon = 'fas fa-exclamation-triangle',
+        iconColor = 'var(--color-warning)',
+        confirmText = 'Confirmar',
+        cancelText = 'Cancelar',
+        confirmClass = 'btn-danger',
+        cancelClass = 'btn-outline'
+    } = options;
+    
+    const modal = document.createElement('div');
+    modal.className = 'confirm-modal';
+    modal.innerHTML = `
+        <div class="confirm-modal-content">
+            <div class="confirm-modal-header">
+                <i class="${icon}" style="color: ${iconColor}"></i>
+                <h3>${title}</h3>
+            </div>
+            <div class="confirm-modal-body">
+                <p>${message}</p>
+            </div>
+            <div class="confirm-modal-footer">
+                <button class="btn ${cancelClass} confirm-cancel">${cancelText}</button>
+                <button class="btn ${confirmClass} confirm-ok">${confirmText}</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Animar entrada
+    setTimeout(() => modal.classList.add('confirm-modal-show'), 10);
+    
+    // Event listeners
+    modal.querySelector('.confirm-cancel').addEventListener('click', () => {
+        modal.classList.remove('confirm-modal-show');
+        setTimeout(() => modal.remove(), 300);
+    });
+    
+    modal.querySelector('.confirm-ok').addEventListener('click', () => {
+        modal.classList.remove('confirm-modal-show');
+        setTimeout(() => {
+            modal.remove();
+            onConfirm();
+        }, 300);
+    });
+    
+    // Fechar ao clicar fora
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('confirm-modal-show');
+            setTimeout(() => modal.remove(), 300);
+        }
+    });
+    
+    // Fechar com ESC
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+            modal.classList.remove('confirm-modal-show');
+            setTimeout(() => modal.remove(), 300);
+            document.removeEventListener('keydown', handleEsc);
+        }
+    };
+    document.addEventListener('keydown', handleEsc);
+}
+
+// Confirmação antes de remover itens
+document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        
+        showConfirmModal('Tem certeza que deseja remover este item do carrinho?', () => {
+            window.location.href = href;
+        }, {
+            title: 'Remover Item',
+            icon: 'fas fa-trash',
+            iconColor: 'var(--color-error)',
+            confirmText: 'Remover',
+            cancelText: 'Cancelar'
+        });
+    });
+});
+
+// Prevenir submit do formulário (agora usa AJAX)
+document.querySelectorAll('.quantity-update-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevenir submit tradicional
+    });
+});
+
+// Animação no botão de finalizar
+document.querySelector('.btn-primary.btn-large')?.addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+});
+
+// Feedback visual para botões de quantidade já é gerenciado pelo main.js
+</script>
+{% endblock %}

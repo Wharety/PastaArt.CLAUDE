@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Doces Tradicionais - Pasta Art Encanto{% endblock %}
+
+{% block content %}
+<div class="category-page">
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-content">
+            <div class="page-title-section">
+                <h1 class="page-title">
+                    <i class="fas fa-utensils"></i>
+                    Doces Tradicionais
+                </h1>
+                <p class="page-subtitle">Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Section -->
+<section class="products-section">
+    <div class="container">
+        {% if doces %}
+        <div class="products-grid">
+            {% for doce in doces %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if doce.imagem_url %}
+                        <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" loading="lazy" width="400" height="300" decoding="async">
+                    {% else %}
+                        <div class="product-placeholder">
+                            <i class="fas fa-birthday-cake"></i>
+                        </div>
+                    {% endif %}
+                    <div class="product-overlay">
+                        <a href="{{ url_for('loja.detalhes_doce', doce_id=doce.id) }}" class="btn btn-ghost btn-small">
+                            <i class="fas fa-eye"></i>
+                            Ver detalhes
+                        </a>
+                    </div>
+                </div>    
+                <div class="product-info">
+                    <h3 class="product-name">{{ doce.nome }}</h3>
+                    <p class="product-description">{{ doce.descricao[:80] }}{% if doce.descricao|length > 80 %}...{% endif %}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-birthday-cake"></i>
+            </div>
+            <h3>Em breve novos doces tradicionais!</h3>
+            <p>Estamos preparando delícias especiais para você. Volte em breve!</p>
+            <a href="{{ url_for('loja.index') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i>
+                Voltar ao Início
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="about-section">
+    <div class="container">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>Por que escolher nossos doces tradicionais?</h2>
+                <p>Nossos doces tradicionais são feitos com receitas que passaram de geração em geração, 
+                   combinando técnicas artesanais com ingredientes de primeira qualidade.</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-heart"></i>
+                        <span>Feito com amor</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-leaf"></i>
+                        <span>Ingredientes naturais</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-clock"></i>
+                        <span>Pronto para consumo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

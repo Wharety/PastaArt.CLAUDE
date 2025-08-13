@@ -1,0 +1,1173 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Configurações do Site - Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+.config-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.config-section-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.config-section-header i {
+    font-size: 1.5rem;
+}
+
+.config-section-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.config-section-body {
+    padding: 2rem;
+}
+
+.image-upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.image-upload-area:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+}
+
+.image-upload-area.dragover {
+    border-color: #667eea;
+    background: #e8f2ff;
+}
+
+.current-image {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.current-image img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid #e9ecef;
+}
+
+.current-image .preview-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.upload-preview {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.upload-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card-preview {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    background: white;
+    margin: 1rem 0;
+}
+
+.category-card-preview h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.category-card-preview p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.about-content-preview {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.delivery-info-preview {
+    background: #e8f5e8;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid #28a745;
+}
+
+.social-preview {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border: 1px solid #dee2e6;
+}
+
+.social-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    text-decoration: none;
+    color: #495057;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: #495057;
+}
+
+.social-icon i {
+    font-size: 1.2rem;
+}
+
+.social-icon.facebook i { color: #1877f2; }
+.social-icon.instagram i { color: #e4405f; }
+.social-icon.whatsapp i { color: #25d366; }
+.social-icon.tiktok i { color: #000000; }
+.social-icon.youtube i { color: #ff0000; }
+.social-icon.linkedin i { color: #0077b5; }
+
+.preview-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.config-section h4 {
+    color: #495057;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.save-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.save-section .btn {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .config-section-body {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <div>
+            <h1 class="admin-page-title"><i class="fas fa-cogs"></i> Configurações do Site</h1>
+            <p class="admin-page-subtitle">Gerencie todos os elementos visuais e conteúdo dinâmico do site</p>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('configuracoes.listar_configuracoes') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    
+    <!-- SEÇÃO: LOGO -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-image"></i>
+            <h3>Logo do Site</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div>
+                    <label class="form-label">Logo Atual</label>
+                    <div class="current-image">
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo atual" id="currentLogo">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Upload Nova Logo</label>
+                    <div class="image-upload-area" onclick="document.getElementById('logoUpload').click()">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #667eea; margin-bottom: 1rem;"></i>
+                        <p>Clique para selecionar uma nova logo</p>
+                        <p style="font-size: 0.9rem; color: #666;">Formatos: SVG, PNG, JPG (Recomendado: SVG)</p>
+                    </div>
+                    <input type="file" id="logoUpload" name="logo" accept="image/*" style="display: none;" onchange="previewLogo(this)">
+                    <div class="upload-preview" id="logoPreview" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: BANNER -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-image"></i>
+            <h3>Banner Principal</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div>
+                    <label class="form-label">Banner Atual</label>
+                    <div class="current-image">
+                        <img src="{{ url_for('static', filename='images/banner.webp') }}" alt="Banner atual" id="currentBanner">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Upload Novo Banner</label>
+                    <div class="image-upload-area" onclick="document.getElementById('bannerUpload').click()">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #667eea; margin-bottom: 1rem;"></i>
+                        <p>Clique para selecionar um novo banner</p>
+                        <p style="font-size: 0.9rem; color: #666;">Formatos: WebP, PNG, JPG (Recomendado: WebP)</p>
+                    </div>
+                    <input type="file" id="bannerUpload" name="banner" accept="image/*" style="display: none;" onchange="previewBanner(this)">
+                    <div class="upload-preview" id="bannerPreview" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CATEGORY CARDS -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-images"></i>
+            <h3>Cards de Categoria (Página Inicial)</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <!-- Card Tradicional -->
+                <div>
+                    <h4>Card - Doces Tradicionais</h4>
+                    <div class="category-card-preview">
+                        <h4 id="tradicionalTitle">Doces Tradicionais</h4>
+                        <p id="tradicionalDesc">Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tradicional_title" class="form-label">Título</label>
+                        <input type="text" id="tradicional_title" name="tradicional_title" class="form-control" 
+                               value="{{ configs.get('tradicional_title', 'Doces Tradicionais') }}" 
+                               onchange="updatePreview('tradicionalTitle', this.value)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tradicional_description" class="form-label">Descrição</label>
+                        <textarea id="tradicional_description" name="tradicional_description" class="form-control" rows="3"
+                                  onchange="updatePreview('tradicionalDesc', this.value)">{{ configs.get('tradicional_description', 'Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados.') }}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tradicional_image" class="form-label">Imagem do Card</label>
+                        
+                        <!-- Imagem Atual -->
+                        <div class="current-image">
+                            <label class="preview-label">Imagem Atual:</label>
+                            <img src="{{ url_for('static', filename=configs.get('card_tradicional_image', 'images/doces_tradicionais.png')) }}" 
+                                 alt="Imagem atual do card tradicional" id="currentTradicionalImage">
+                        </div>
+                        
+                        <!-- Upload Nova Imagem -->
+                        <div class="image-upload-area" onclick="document.getElementById('tradicionalImage').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: #667eea;"></i>
+                            <p>Upload nova imagem</p>
+                        </div>
+                        <input type="file" id="tradicionalImage" name="tradicional_image" accept="image/*" style="display: none;" onchange="previewTradicionalImage(this)">
+                        <div class="upload-preview" id="tradicionalImagePreview" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Card Personalizado -->
+                <div>
+                    <h4>Card - Doces Personalizados</h4>
+                    <div class="category-card-preview">
+                        <h4 id="personalizadoTitle">Doces Personalizados</h4>
+                        <p id="personalizadoDesc">Doces únicos e personalizados para seus eventos especiais.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="personalizado_title" class="form-label">Título</label>
+                        <input type="text" id="personalizado_title" name="personalizado_title" class="form-control" 
+                               value="{{ configs.get('personalizado_title', 'Doces Personalizados') }}" 
+                               onchange="updatePreview('personalizadoTitle', this.value)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="personalizado_description" class="form-label">Descrição</label>
+                        <textarea id="personalizado_description" name="personalizado_description" class="form-control" rows="3"
+                                  onchange="updatePreview('personalizadoDesc', this.value)">{{ configs.get('personalizado_description', 'Doces únicos e personalizados para seus eventos especiais.') }}</textarea>
+            </div>
+    
+                    <div class="form-group">
+                        <label for="personalizado_image" class="form-label">Imagem do Card</label>
+                        
+                        <!-- Imagem Atual -->
+                        <div class="current-image">
+                            <label class="preview-label">Imagem Atual:</label>
+                            <img src="{{ url_for('static', filename=configs.get('card_personalizado_image', 'images/doces_personalizados.png')) }}" 
+                                 alt="Imagem atual do card personalizado" id="currentPersonalizadoImage">
+                        </div>
+                        
+                        <!-- Upload Nova Imagem -->
+                        <div class="image-upload-area" onclick="document.getElementById('personalizadoImage').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: #667eea;"></i>
+                            <p>Upload nova imagem</p>
+                        </div>
+                        <input type="file" id="personalizadoImage" name="personalizado_image" accept="image/*" style="display: none;" onchange="previewPersonalizadoImage(this)">
+                        <div class="upload-preview" id="personalizadoImagePreview" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: ABOUT CONTENT -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-info-circle"></i>
+            <h3>Conteúdo Sobre Nós</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-group">
+                <label for="about_title" class="form-label">Título da Seção</label>
+                <input type="text" id="about_title" name="about_title" class="form-control" 
+                       value="{{ configs.get('about_title', 'Sobre a Pasta Art Encanto') }}" 
+                       onchange="updateAboutPreview()">
+            </div>
+            
+            <div class="form-group">
+                <label for="about_description" class="form-label">Descrição</label>
+                <textarea id="about_description" name="about_description" class="form-control" rows="4"
+                          onchange="updateAboutPreview()">{{ configs.get('about_description', 'Somos especialistas em criar doces únicos e personalizados que transformam seus momentos especiais em memórias inesquecíveis.') }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="preview-label">Preview:</label>
+                <div class="about-content-preview">
+                    <h3 id="aboutPreviewTitle">{{ configs.get('about_title', 'Sobre a Pasta Art Encanto') }}</h3>
+                    <p id="aboutPreviewDesc">{{ configs.get('about_description', 'Somos especialistas em criar doces únicos e personalizados que transformam seus momentos especiais em memórias inesquecíveis.') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: REDES SOCIAIS -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-share-alt"></i>
+            <h3>Redes Sociais</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <!-- Facebook -->
+                <div class="form-group">
+                    <label for="facebook_url" class="form-label">
+                        <i class="fab fa-facebook" style="color: #1877f2;"></i> Facebook
+                    </label>
+                    <input type="url" id="facebook_url" name="facebook_url" class="form-control" 
+                           value="{{ configs.get('facebook_url', '') }}" 
+                           placeholder="https://facebook.com/sua-pagina"
+                           onchange="updateSocialPreview()">
+                </div>
+
+                <!-- Instagram -->
+                <div class="form-group">
+                    <label for="instagram_url" class="form-label">
+                        <i class="fab fa-instagram" style="color: #e4405f;"></i> Instagram
+                    </label>
+                    <input type="url" id="instagram_url" name="instagram_url" class="form-control" 
+                           value="{{ configs.get('instagram_url', '') }}" 
+                           placeholder="https://instagram.com/seu-perfil"
+                           onchange="updateSocialPreview()">
+                </div>
+
+                <!-- WhatsApp -->
+                <div class="form-group">
+                    <label for="whatsapp_url" class="form-label">
+                        <i class="fab fa-whatsapp" style="color: #25d366;"></i> WhatsApp
+                    </label>
+                    <input type="text" id="whatsapp_url" name="whatsapp_url" class="form-control" 
+                           value="{{ configs.get('whatsapp_url', '') }}" 
+                           placeholder="(11) 99999-9999"
+                           onchange="updateSocialPreview()">
+                </div>
+
+                <!-- TikTok -->
+                <div class="form-group">
+                    <label for="tiktok_url" class="form-label">
+                        <i class="fab fa-tiktok" style="color: #000000;"></i> TikTok
+                    </label>
+                    <input type="url" id="tiktok_url" name="tiktok_url" class="form-control" 
+                           value="{{ configs.get('tiktok_url', '') }}" 
+                           placeholder="https://tiktok.com/@seu-perfil"
+                           onchange="updateSocialPreview()">
+                </div>
+
+                <!-- YouTube -->
+                <div class="form-group">
+                    <label for="youtube_url" class="form-label">
+                        <i class="fab fa-youtube" style="color: #ff0000;"></i> YouTube
+                    </label>
+                    <input type="url" id="youtube_url" name="youtube_url" class="form-control" 
+                           value="{{ configs.get('youtube_url', '') }}" 
+                           placeholder="https://youtube.com/@seu-canal"
+                           onchange="updateSocialPreview()">
+                </div>
+
+                <!-- LinkedIn -->
+                <div class="form-group">
+                    <label for="linkedin_url" class="form-label">
+                        <i class="fab fa-linkedin" style="color: #0077b5;"></i> LinkedIn
+                    </label>
+                    <input type="url" id="linkedin_url" name="linkedin_url" class="form-control" 
+                           value="{{ configs.get('linkedin_url', '') }}" 
+                           placeholder="https://linkedin.com/in/seu-perfil"
+                           onchange="updateSocialPreview()">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="preview-label">Preview das Redes Sociais:</label>
+                <div class="social-preview">
+                    <div class="social-icons" id="socialPreview">
+                        <!-- Preview será gerado dinamicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- SEÇÃO: INFORMAÇÕES BÁSICAS DO SITE -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-globe"></i>
+            <h3>Informações Básicas do Site</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="site_nome" class="form-label">Nome do Site</label>
+                    <input type="text" id="site_nome" name="site_nome" class="form-control" 
+                           value="{{ configs.get('site_nome', 'Pasta Art Encanto') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="site_descricao" class="form-label">Descrição do Site</label>
+                    <textarea id="site_descricao" name="site_descricao" class="form-control" rows="3">{{ configs.get('site_descricao', 'Doces personalizados feitos com muito carinho e qualidade para tornar seus momentos ainda mais especiais.') }}</textarea>
+                    <small class="form-hint">Usado em meta tags para SEO</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rodape_texto" class="form-label">Texto do Rodapé</label>
+                    <input type="text" id="rodape_texto" name="rodape_texto" class="form-control" 
+                           value="{{ configs.get('rodape_texto', '© 2024 Pasta Art Encanto. Todos os direitos reservados.') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: INFORMAÇÕES DE CONTATO -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-address-book"></i>
+            <h3>Informações de Contato</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="telefone" class="form-label">Telefone Principal</label>
+                    <input type="text" id="telefone" name="telefone" class="form-control" 
+                           value="{{ configs.get('telefone', '(11) 99999-9999') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email de Contato</label>
+                    <input type="email" id="email" name="email" class="form-control" 
+                           value="{{ configs.get('email', 'contato@pastaartencanto.com') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="endereco" class="form-label">Endereço</label>
+                    <textarea id="endereco" name="endereco" class="form-control" rows="3">{{ configs.get('endereco', 'Rua das Flores, 123 - Centro, São Paulo - SP') }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CONFIGURAÇÕES DA PÁGINA INICIAL -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-home"></i>
+            <h3>Configurações da Página Inicial</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="produtos_titulo" class="form-label">Título da Seção de Produtos</label>
+                    <input type="text" id="produtos_titulo" name="produtos_titulo" class="form-control" 
+                           value="{{ configs.get('produtos_titulo', 'Nossos Doces') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="produtos_subtitulo" class="form-label">Subtítulo da Seção de Produtos</label>
+                    <input type="text" id="produtos_subtitulo" name="produtos_subtitulo" class="form-control" 
+                           value="{{ configs.get('produtos_subtitulo', 'Escolha a categoria que melhor atende suas necessidades') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: FEATURES DOS CARDS DE CATEGORIA -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-star"></i>
+            <h3>Features dos Cards de Categoria</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <!-- Features do Card Tradicional -->
+                <div>
+                    <h4>Card - Doces Tradicionais</h4>
+                    <div class="form-group">
+                        <label for="tradicional_feature_1" class="form-label">Feature 1</label>
+                        <input type="text" id="tradicional_feature_1" name="tradicional_feature_1" class="form-control" 
+                               value="{{ configs.get('tradicional_feature_1', 'Receitas tradicionais') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="tradicional_feature_2" class="form-label">Feature 2</label>
+                        <input type="text" id="tradicional_feature_2" name="tradicional_feature_2" class="form-control" 
+                               value="{{ configs.get('tradicional_feature_2', 'Ingredientes naturais') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="tradicional_feature_3" class="form-label">Feature 3</label>
+                        <input type="text" id="tradicional_feature_3" name="tradicional_feature_3" class="form-control" 
+                               value="{{ configs.get('tradicional_feature_3', 'Pronto para consumo') }}">
+                    </div>
+                </div>
+
+                <!-- Features do Card Personalizado -->
+                <div>
+                    <h4>Card - Doces Personalizados</h4>
+                    <div class="form-group">
+                        <label for="personalizado_feature_1" class="form-label">Feature 1</label>
+                        <input type="text" id="personalizado_feature_1" name="personalizado_feature_1" class="form-control" 
+                               value="{{ configs.get('personalizado_feature_1', 'Design personalizado') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="personalizado_feature_2" class="form-label">Feature 2</label>
+                        <input type="text" id="personalizado_feature_2" name="personalizado_feature_2" class="form-control" 
+                               value="{{ configs.get('personalizado_feature_2', 'Para eventos especiais') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="personalizado_feature_3" class="form-label">Feature 3</label>
+                        <input type="text" id="personalizado_feature_3" name="personalizado_feature_3" class="form-control" 
+                               value="{{ configs.get('personalizado_feature_3', 'Consultoria gratuita') }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: FEATURES DA SEÇÃO SOBRE NÓS -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-heart"></i>
+            <h3>Features da Seção Sobre Nós</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="about_feature_1" class="form-label">Feature 1</label>
+                    <input type="text" id="about_feature_1" name="about_feature_1" class="form-control" 
+                           value="{{ configs.get('about_feature_1', 'Feito com amor') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="about_feature_2" class="form-label">Feature 2</label>
+                    <input type="text" id="about_feature_2" name="about_feature_2" class="form-control" 
+                           value="{{ configs.get('about_feature_2', 'Ingredientes naturais') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="about_feature_3" class="form-label">Feature 3</label>
+                    <input type="text" id="about_feature_3" name="about_feature_3" class="form-control" 
+                           value="{{ configs.get('about_feature_3', 'Personalização total') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CONFIGURAÇÕES DO CHECKOUT -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-credit-card"></i>
+            <h3>Configurações do Checkout</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="checkout_titulo" class="form-label">Título da Página</label>
+                    <input type="text" id="checkout_titulo" name="checkout_titulo" class="form-control" 
+                           value="{{ configs.get('checkout_titulo', 'Finalizar Pedido') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="checkout_descricao" class="form-label">Descrição</label>
+                    <input type="text" id="checkout_descricao" name="checkout_descricao" class="form-control" 
+                           value="{{ configs.get('checkout_descricao', 'Seus dados serão utilizados para contato via WhatsApp') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="checkout_botao_texto" class="form-label">Texto do Botão de Finalização</label>
+                    <input type="text" id="checkout_botao_texto" name="checkout_botao_texto" class="form-control" 
+                           value="{{ configs.get('checkout_botao_texto', 'Enviar Pedido via WhatsApp') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="checkout_telefone_obrigatorio" class="form-label">Mensagem de Telefone Obrigatório</label>
+                    <textarea id="checkout_telefone_obrigatorio" name="checkout_telefone_obrigatorio" class="form-control" rows="2">{{ configs.get('checkout_telefone_obrigatorio', 'Telefone necessário! Precisamos do seu telefone para entrar em contato via WhatsApp.') }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CONFIGURAÇÕES DA PÁGINA DE PEDIDO FINALIZADO -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-check-circle"></i>
+            <h3>Configurações da Página de Pedido Finalizado</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="pedido_sucesso_titulo" class="form-label">Título de Sucesso</label>
+                    <input type="text" id="pedido_sucesso_titulo" name="pedido_sucesso_titulo" class="form-control" 
+                           value="{{ configs.get('pedido_sucesso_titulo', 'Pedido Enviado com Sucesso!') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="pedido_sucesso_subtitulo" class="form-label">Subtítulo</label>
+                    <input type="text" id="pedido_sucesso_subtitulo" name="pedido_sucesso_subtitulo" class="form-control" 
+                           value="{{ configs.get('pedido_sucesso_subtitulo', 'Olá {nome}, seu pedido foi enviado para nosso WhatsApp') }}">
+                    <small class="form-hint">Use {nome} para incluir o nome do cliente</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pedido_tempo_resposta" class="form-label">Tempo de Resposta</label>
+                    <input type="text" id="pedido_tempo_resposta" name="pedido_tempo_resposta" class="form-control" 
+                           value="{{ configs.get('pedido_tempo_resposta', '1 hora') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="pedido_whatsapp_texto" class="form-label">Texto do Botão WhatsApp</label>
+                    <input type="text" id="pedido_whatsapp_texto" name="pedido_whatsapp_texto" class="form-control" 
+                           value="{{ configs.get('pedido_whatsapp_texto', 'Abrir WhatsApp') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CONFIGURAÇÕES DO DASHBOARD -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-tachometer-alt"></i>
+            <h3>Configurações do Dashboard</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="dashboard_titulo" class="form-label">Título do Dashboard</label>
+                    <input type="text" id="dashboard_titulo" name="dashboard_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_titulo', 'Dashboard') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_subtitulo" class="form-label">Subtítulo do Dashboard</label>
+                    <input type="text" id="dashboard_subtitulo" name="dashboard_subtitulo" class="form-control" 
+                           value="{{ configs.get('dashboard_subtitulo', 'Visão geral da sua loja') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_total_produtos" class="form-label">Texto - Total de Produtos</label>
+                    <input type="text" id="dashboard_total_produtos" name="dashboard_total_produtos" class="form-control" 
+                           value="{{ configs.get('dashboard_total_produtos', 'Total de Produtos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_produtos_ativos" class="form-label">Texto - Produtos Ativos</label>
+                    <input type="text" id="dashboard_produtos_ativos" name="dashboard_produtos_ativos" class="form-control" 
+                           value="{{ configs.get('dashboard_produtos_ativos', 'Produtos Ativos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_produtos_inativos" class="form-label">Texto - Produtos Inativos</label>
+                    <input type="text" id="dashboard_produtos_inativos" name="dashboard_produtos_inativos" class="form-control" 
+                           value="{{ configs.get('dashboard_produtos_inativos', 'Produtos Inativos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_pedidos_hoje" class="form-label">Texto - Pedidos Hoje</label>
+                    <input type="text" id="dashboard_pedidos_hoje" name="dashboard_pedidos_hoje" class="form-control" 
+                           value="{{ configs.get('dashboard_pedidos_hoje', 'Pedidos Hoje') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_pedidos_pendentes" class="form-label">Texto - Pedidos Pendentes</label>
+                    <input type="text" id="dashboard_pedidos_pendentes" name="dashboard_pedidos_pendentes" class="form-control" 
+                           value="{{ configs.get('dashboard_pedidos_pendentes', 'pendentes') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_novo_produto_titulo" class="form-label">Título - Novo Produto</label>
+                    <input type="text" id="dashboard_novo_produto_titulo" name="dashboard_novo_produto_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_novo_produto_titulo', 'Novo Produto') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_novo_produto_descricao" class="form-label">Descrição - Novo Produto</label>
+                    <input type="text" id="dashboard_novo_produto_descricao" name="dashboard_novo_produto_descricao" class="form-control" 
+                           value="{{ configs.get('dashboard_novo_produto_descricao', 'Adicionar um novo doce ao catálogo') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_gerenciar_produtos_titulo" class="form-label">Título - Gerenciar Produtos</label>
+                    <input type="text" id="dashboard_gerenciar_produtos_titulo" name="dashboard_gerenciar_produtos_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_gerenciar_produtos_titulo', 'Gerenciar Produtos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_gerenciar_produtos_descricao" class="form-label">Descrição - Gerenciar Produtos</label>
+                    <input type="text" id="dashboard_gerenciar_produtos_descricao" name="dashboard_gerenciar_produtos_descricao" class="form-control" 
+                           value="{{ configs.get('dashboard_gerenciar_produtos_descricao', 'Ver e editar produtos existentes') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_ver_pedidos_titulo" class="form-label">Título - Ver Pedidos</label>
+                    <input type="text" id="dashboard_ver_pedidos_titulo" name="dashboard_ver_pedidos_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_ver_pedidos_titulo', 'Ver Pedidos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_ver_pedidos_descricao" class="form-label">Descrição - Ver Pedidos</label>
+                    <input type="text" id="dashboard_ver_pedidos_descricao" name="dashboard_ver_pedidos_descricao" class="form-control" 
+                           value="{{ configs.get('dashboard_ver_pedidos_descricao', 'Gerenciar todos os pedidos da loja') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_ver_loja_titulo" class="form-label">Título - Ver Loja</label>
+                    <input type="text" id="dashboard_ver_loja_titulo" name="dashboard_ver_loja_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_ver_loja_titulo', 'Ver Loja') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_ver_loja_descricao" class="form-label">Descrição - Ver Loja</label>
+                    <input type="text" id="dashboard_ver_loja_descricao" name="dashboard_ver_loja_descricao" class="form-control" 
+                           value="{{ configs.get('dashboard_ver_loja_descricao', 'Visualizar como os clientes veem sua loja') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_pedidos_recentes_titulo" class="form-label">Título - Pedidos Recentes</label>
+                    <input type="text" id="dashboard_pedidos_recentes_titulo" name="dashboard_pedidos_recentes_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_pedidos_recentes_titulo', 'Pedidos Recentes') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_produtos_recentes_titulo" class="form-label">Título - Produtos Recentes</label>
+                    <input type="text" id="dashboard_produtos_recentes_titulo" name="dashboard_produtos_recentes_titulo" class="form-control" 
+                           value="{{ configs.get('dashboard_produtos_recentes_titulo', 'Produtos Recentes') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_ver_todos" class="form-label">Texto - Ver Todos</label>
+                    <input type="text" id="dashboard_ver_todos" name="dashboard_ver_todos" class="form-control" 
+                           value="{{ configs.get('dashboard_ver_todos', 'Ver Todos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_ver_detalhes" class="form-label">Texto - Ver Detalhes</label>
+                    <input type="text" id="dashboard_ver_detalhes" name="dashboard_ver_detalhes" class="form-control" 
+                           value="{{ configs.get('dashboard_ver_detalhes', 'Ver Detalhes') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_editar" class="form-label">Texto - Editar</label>
+                    <input type="text" id="dashboard_editar" name="dashboard_editar" class="form-control" 
+                           value="{{ configs.get('dashboard_editar', 'Editar') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dashboard_mais" class="form-label">Texto - Mais</label>
+                    <input type="text" id="dashboard_mais" name="dashboard_mais" class="form-control" 
+                           value="{{ configs.get('dashboard_mais', 'mais') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CONFIGURAÇÕES DO ADMIN -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-cog"></i>
+            <h3>Configurações do Painel Administrativo</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="admin_produtos_titulo" class="form-label">Título da Página de Produtos</label>
+                    <input type="text" id="admin_produtos_titulo" name="admin_produtos_titulo" class="form-control" 
+                           value="{{ configs.get('admin_produtos_titulo', 'Produtos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_produtos_subtitulo" class="form-label">Subtítulo da Página de Produtos</label>
+                    <input type="text" id="admin_produtos_subtitulo" name="admin_produtos_subtitulo" class="form-control" 
+                           value="{{ configs.get('admin_produtos_subtitulo', 'Gerencie todos os doces da sua loja') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_novo_produto" class="form-label">Texto - Novo Produto</label>
+                    <input type="text" id="admin_novo_produto" name="admin_novo_produto" class="form-control" 
+                           value="{{ configs.get('admin_novo_produto', 'Novo Produto') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_lista_produtos" class="form-label">Título - Lista de Produtos</label>
+                    <input type="text" id="admin_lista_produtos" name="admin_lista_produtos" class="form-control" 
+                           value="{{ configs.get('admin_lista_produtos', 'Lista de Produtos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_todos_status" class="form-label">Texto - Todos os Status</label>
+                    <input type="text" id="admin_todos_status" name="admin_todos_status" class="form-control" 
+                           value="{{ configs.get('admin_todos_status', 'Todos os Status') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_apenas_ativos" class="form-label">Texto - Apenas Ativos</label>
+                    <input type="text" id="admin_apenas_ativos" name="admin_apenas_ativos" class="form-control" 
+                           value="{{ configs.get('admin_apenas_ativos', 'Apenas Ativos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_apenas_inativos" class="form-label">Texto - Apenas Inativos</label>
+                    <input type="text" id="admin_apenas_inativos" name="admin_apenas_inativos" class="form-control" 
+                           value="{{ configs.get('admin_apenas_inativos', 'Apenas Inativos') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_imagem" class="form-label">Cabeçalho - Coluna Imagem</label>
+                    <input type="text" id="admin_coluna_imagem" name="admin_coluna_imagem" class="form-control" 
+                           value="{{ configs.get('admin_coluna_imagem', 'Imagem') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_nome" class="form-label">Cabeçalho - Coluna Nome</label>
+                    <input type="text" id="admin_coluna_nome" name="admin_coluna_nome" class="form-control" 
+                           value="{{ configs.get('admin_coluna_nome', 'Nome') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_preco" class="form-label">Cabeçalho - Coluna Preço</label>
+                    <input type="text" id="admin_coluna_preco" name="admin_coluna_preco" class="form-control" 
+                           value="{{ configs.get('admin_coluna_preco', 'Preço') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_sabores" class="form-label">Cabeçalho - Coluna Sabores</label>
+                    <input type="text" id="admin_coluna_sabores" name="admin_coluna_sabores" class="form-control" 
+                           value="{{ configs.get('admin_coluna_sabores', 'Sabores') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_qtd_min" class="form-label">Cabeçalho - Coluna Qtd. Mín.</label>
+                    <input type="text" id="admin_coluna_qtd_min" name="admin_coluna_qtd_min" class="form-control" 
+                           value="{{ configs.get('admin_coluna_qtd_min', 'Qtd. Mín.') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_estoque" class="form-label">Cabeçalho - Coluna Estoque</label>
+                    <input type="text" id="admin_coluna_estoque" name="admin_coluna_estoque" class="form-control" 
+                           value="{{ configs.get('admin_coluna_estoque', 'Estoque') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_status" class="form-label">Cabeçalho - Coluna Status</label>
+                    <input type="text" id="admin_coluna_status" name="admin_coluna_status" class="form-control" 
+                           value="{{ configs.get('admin_coluna_status', 'Status') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_data" class="form-label">Cabeçalho - Coluna Data</label>
+                    <input type="text" id="admin_coluna_data" name="admin_coluna_data" class="form-control" 
+                           value="{{ configs.get('admin_coluna_data', 'Data') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_coluna_acoes" class="form-label">Cabeçalho - Coluna Ações</label>
+                    <input type="text" id="admin_coluna_acoes" name="admin_coluna_acoes" class="form-control" 
+                           value="{{ configs.get('admin_coluna_acoes', 'Ações') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_editar" class="form-label">Texto - Botão Editar</label>
+                    <input type="text" id="admin_editar" name="admin_editar" class="form-control" 
+                           value="{{ configs.get('admin_editar', 'Editar') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_excluir" class="form-label">Texto - Botão Excluir</label>
+                    <input type="text" id="admin_excluir" name="admin_excluir" class="form-control" 
+                           value="{{ configs.get('admin_excluir', 'Excluir') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_confirmar_exclusao" class="form-label">Texto - Confirmação de Exclusão</label>
+                    <input type="text" id="admin_confirmar_exclusao" name="admin_confirmar_exclusao" class="form-control" 
+                           value="{{ configs.get('admin_confirmar_exclusao', 'Tem certeza que deseja excluir o produto') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_nao_pode_excluir" class="form-label">Texto - Não Pode Excluir</label>
+                    <input type="text" id="admin_nao_pode_excluir" name="admin_nao_pode_excluir" class="form-control" 
+                           value="{{ configs.get('admin_nao_pode_excluir', 'Não é possível excluir este produto') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_info_basicas" class="form-label">Título - Informações Básicas</label>
+                    <input type="text" id="admin_form_info_basicas" name="admin_form_info_basicas" class="form-control" 
+                           value="{{ configs.get('admin_form_info_basicas', 'Informações Básicas') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_nome_produto" class="form-label">Label - Nome do Produto</label>
+                    <input type="text" id="admin_form_nome_produto" name="admin_form_nome_produto" class="form-control" 
+                           value="{{ configs.get('admin_form_nome_produto', 'Nome do Produto') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_descricao" class="form-label">Label - Descrição</label>
+                    <input type="text" id="admin_form_descricao" name="admin_form_descricao" class="form-control" 
+                           value="{{ configs.get('admin_form_descricao', 'Descrição') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_placeholder_nome" class="form-label">Placeholder - Nome do Produto</label>
+                    <input type="text" id="admin_form_placeholder_nome" name="admin_form_placeholder_nome" class="form-control" 
+                           value="{{ configs.get('admin_form_placeholder_nome', 'Ex: Brigadeiro Gourmet de Chocolate') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_placeholder_descricao" class="form-label">Placeholder - Descrição</label>
+                    <input type="text" id="admin_form_placeholder_descricao" name="admin_form_placeholder_descricao" class="form-control" 
+                           value="{{ configs.get('admin_form_placeholder_descricao', 'Descreva os sabores, ingredientes e ocasiões especiais...') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_hint_nome" class="form-label">Dica - Nome do Produto</label>
+                    <input type="text" id="admin_form_hint_nome" name="admin_form_hint_nome" class="form-control" 
+                           value="{{ configs.get('admin_form_hint_nome', 'Escolha um nome atrativo e descritivo') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_form_hint_descricao" class="form-label">Dica - Descrição</label>
+                    <input type="text" id="admin_form_hint_descricao" name="admin_form_hint_descricao" class="form-control" 
+                           value="{{ configs.get('admin_form_hint_descricao', 'Descreva detalhes que atraiam os clientes') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- BOTÃO SALVAR -->
+    <div class="save-section">
+        <button type="submit" class="btn btn-primary btn-large">
+            <i class="fas fa-save"></i> Salvar Todas as Alterações
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Funções para preview de imagens
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('logoPreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview da nova logo">`;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewBanner(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('bannerPreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview do novo banner">`;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewTradicionalImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('tradicionalImagePreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview da nova imagem tradicional">`;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewPersonalizadoImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('personalizadoImagePreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview da nova imagem personalizada">`;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Funções para preview de texto
+function updatePreview(elementId, value) {
+    document.getElementById(elementId).textContent = value;
+}
+
+function updateAboutPreview() {
+    document.getElementById('aboutPreviewTitle').textContent = document.getElementById('about_title').value;
+    document.getElementById('aboutPreviewDesc').textContent = document.getElementById('about_description').value;
+}
+
+
+
+function updateSocialPreview() {
+    const socialPreview = document.getElementById('socialPreview');
+    let html = '';
+    
+    const socialNetworks = [
+        { id: 'facebook_url', name: 'Facebook', icon: 'fab fa-facebook', class: 'facebook' },
+        { id: 'instagram_url', name: 'Instagram', icon: 'fab fa-instagram', class: 'instagram' },
+        { id: 'whatsapp_url', name: 'WhatsApp', icon: 'fab fa-whatsapp', class: 'whatsapp' },
+        { id: 'tiktok_url', name: 'TikTok', icon: 'fab fa-tiktok', class: 'tiktok' },
+        { id: 'youtube_url', name: 'YouTube', icon: 'fab fa-youtube', class: 'youtube' },
+        { id: 'linkedin_url', name: 'LinkedIn', icon: 'fab fa-linkedin', class: 'linkedin' }
+    ];
+    
+    socialNetworks.forEach(network => {
+        const url = document.getElementById(network.id).value.trim();
+        if (url) {
+            html += `
+                <a href="${url}" target="_blank" class="social-icon ${network.class}">
+                    <i class="${network.icon}"></i>
+                    <span>${network.name}</span>
+                </a>
+            `;
+        }
+    });
+    
+    if (html === '') {
+        html = '<p style="color: #6c757d; font-style: italic;">Nenhuma rede social configurada</p>';
+    }
+    
+    socialPreview.innerHTML = html;
+}
+
+// Drag and drop para upload de imagens
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadAreas = document.querySelectorAll('.image-upload-area');
+    
+    uploadAreas.forEach(area => {
+        area.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        area.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        
+        area.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const input = this.parentElement.querySelector('input[type="file"]');
+                input.files = files;
+                
+                // Trigger change event
+                const event = new Event('change');
+                input.dispatchEvent(event);
+            }
+        });
+    });
+    
+    // Inicializar preview das redes sociais
+    updateSocialPreview();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Editar Configuração - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1><i class="fas fa-edit"></i> Editar Configuração</h1>
+        <p>Modifique o valor da configuração: <strong>{{ config.descricao }}</strong></p>
+    </div>
+
+    <div class="config-form-container">
+        <form method="POST" class="config-form">
+            <div class="form-group">
+                <label for="chave">Chave da Configuração</label>
+                <input type="text" id="chave" value="{{ config.chave }}" readonly class="form-control">
+                <small class="form-text">Chave não pode ser alterada</small>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao">Descrição</label>
+                <input type="text" id="descricao" value="{{ config.descricao }}" readonly class="form-control">
+                <small class="form-text">Descrição não pode ser alterada</small>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo</label>
+                <input type="text" id="tipo" value="{{ config.tipo }}" readonly class="form-control">
+                <small class="form-text">Tipo não pode ser alterado</small>
+            </div>
+
+            <div class="form-group">
+                <label for="valor">Valor</label>
+                {% if config.tipo == 'texto' %}
+                    <textarea name="valor" id="valor" class="form-control" rows="3" placeholder="Digite o valor">{{ config.valor }}</textarea>
+                {% elif config.tipo == 'email' %}
+                    <input type="email" name="valor" id="valor" value="{{ config.valor }}" class="form-control" placeholder="exemplo@email.com">
+                {% elif config.tipo == 'url' %}
+                    <input type="url" name="valor" id="valor" value="{{ config.valor }}" class="form-control" placeholder="https://exemplo.com">
+                {% elif config.tipo == 'numero' %}
+                    <input type="number" name="valor" id="valor" value="{{ config.valor }}" class="form-control" step="0.01" placeholder="0.00">
+                {% else %}
+                    <input type="text" name="valor" id="valor" value="{{ config.valor }}" class="form-control" placeholder="Digite o valor">
+                {% endif %}
+                <small class="form-text">
+                    {% if config.tipo == 'email' %}
+                        Digite um email válido
+                    {% elif config.tipo == 'url' %}
+                        Digite uma URL válida (deve começar com http:// ou https://)
+                    {% elif config.tipo == 'numero' %}
+                        Digite um número válido
+                    {% else %}
+                        Digite o valor da configuração
+                    {% endif %}
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="categoria">Categoria</label>
+                <input type="text" id="categoria" value="{{ config.categoria }}" readonly class="form-control">
+                <small class="form-text">Categoria não pode ser alterada</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+                <a href="{{ url_for('configuracoes.listar_configuracoes') }}" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.config-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.config-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.2);
+}
+
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #e91e63;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+}
+
+.btn-outline:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .config-form {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

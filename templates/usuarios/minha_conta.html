@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Minha Conta - {{ config.site_nome or 'Pasta Art Encanto' }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="account-container">
+        <div class="account-header">
+            <h1>Minha Conta</h1>
+            <p>Bem-vindo(a) de volta, {{ usuario.nome }}!</p>
+        </div>
+
+        <!-- Flash messages são exibidas globalmente no template base -->
+
+        <div class="account-grid">
+            <!-- Informações do Usuário -->
+            <div class="account-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user"></i> Informações Pessoais</h3>
+                    <a href="{{ url_for('usuarios.editar_perfil') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                </div>
+                <div class="card-content">
+                    <div class="info-item">
+                        <span class="info-label">Nome:</span>
+                        <span class="info-value">{{ usuario.nome }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{ usuario.email }}</span>
+                    </div>
+                    {% if usuario.telefone %}
+                    <div class="info-item">
+                        <span class="info-label">Telefone:</span>
+                        <span class="info-value">{{ usuario.telefone }}</span>
+                    </div>
+                    {% endif %}
+                    {% if usuario.endereco %}
+                    <div class="info-item">
+                        <span class="info-label">Endereço:</span>
+                        <span class="info-value">{{ usuario.endereco }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <span class="info-label">Membro desde:</span>
+                        <span class="info-value">{{ usuario.data_criacao.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    {% if usuario.ultimo_login %}
+                    <div class="info-item">
+                        <span class="info-label">Último login:</span>
+                        <span class="info-value">{{ usuario.ultimo_login.strftime('%d/%m/%Y às %H:%M') }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resumo de Pedidos -->
+            <div class="account-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shopping-bag"></i> Meus Pedidos</h3>
+                    <a href="{{ url_for('usuarios.meus_pedidos') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-list"></i> Ver Todos
+                    </a>
+                </div>
+                <div class="card-content">
+                    {% if pedidos %}
+                        <div class="orders-summary">
+                            <div class="summary-item">
+                                <span class="summary-number">{{ pedidos|length }}</span>
+                                <span class="summary-label">Total de Pedidos</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-number">{{ pedidos|selectattr('status', 'equalto', 'pendente')|list|length }}</span>
+                                <span class="summary-label">Pendentes</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-number">{{ pedidos|selectattr('status', 'equalto', 'concluido')|list|length }}</span>
+                                <span class="summary-label">Concluídos</span>
+                            </div>
+                        </div>
+                        
+                        <div class="recent-orders">
+                            <h4>Pedidos Recentes</h4>
+                            {% for pedido in pedidos[:3] %}
+                            <div class="order-item">
+                                <div class="order-info">
+                                    <span class="order-number">#{{ pedido.numero_pedido }}</span>
+                                    <span class="order-date">{{ pedido.data_pedido.strftime('%d/%m/%Y') }}</span>
+                                </div>
+                                <div class="order-status">
+                                    <span class="status-badge status-{{ pedido.status }}">
+                                        {{ pedido.status|title }}
+                                    </span>
+                                </div>
+                                <div class="order-total">
+                                    R$ {{ "%.2f"|format(pedido.total) }}
+                                </div>
+                                <a href="{{ url_for('usuarios.detalhes_pedido', pedido_id=pedido.id) }}" 
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>Você ainda não fez nenhum pedido.</p>
+                            <a href="{{ url_for('loja.index') }}" class="btn btn-outline">
+                                <i class="fas fa-shopping-cart"></i>
+                                Fazer Primeiro Pedido
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
