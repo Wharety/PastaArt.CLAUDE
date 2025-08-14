@@ -1,5 +1,6 @@
 from flask import Flask, url_for, request
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from models import db, Admin, Configuracao
 from blueprints.admin import admin_bp
 from blueprints.loja import loja_bp
@@ -105,32 +106,42 @@ def create_app():
         # Apenas para MySQL/MariaDB
         if engine_name not in ('mysql', 'mariadb', 'mysql+pymysql'):
             return
-        # Listar colunas existentes
-        existing_cols = set()
-        result = db.session.execute(text(
-            """
-            SELECT COLUMN_NAME
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = DATABASE()
-              AND TABLE_NAME = 'usuarios'
-            """
-        ))
-        for row in result:
-            existing_cols.add(row[0])
-        # Colunas a criar: nome -> DDL
-        ddl_map = {
-            'cep': "ALTER TABLE usuarios ADD COLUMN cep VARCHAR(9) NULL",
-            'logradouro': "ALTER TABLE usuarios ADD COLUMN logradouro VARCHAR(150) NULL",
-            'bairro': "ALTER TABLE usuarios ADD COLUMN bairro VARCHAR(100) NULL",
-            'cidade': "ALTER TABLE usuarios ADD COLUMN cidade VARCHAR(100) NULL",
-            'estado': "ALTER TABLE usuarios ADD COLUMN estado VARCHAR(2) NULL",
-            'numero_endereco': "ALTER TABLE usuarios ADD COLUMN numero_endereco VARCHAR(20) NULL",
-            'complemento_endereco': "ALTER TABLE usuarios ADD COLUMN complemento_endereco VARCHAR(100) NULL",
-        }
-        for col_name, ddl in ddl_map.items():
-            if col_name not in existing_cols:
+        # Tenta adicionar colunas individualmente. Usa IF NOT EXISTS quando suportado.
+        ddls = [
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cep VARCHAR(9) NULL",
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS logradouro VARCHAR(150) NULL",
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS bairro VARCHAR(100) NULL",
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cidade VARCHAR(100) NULL",
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS estado VARCHAR(2) NULL",
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS numero_endereco VARCHAR(20) NULL",
+            "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS complemento_endereco VARCHAR(100) NULL",
+        ]
+        for ddl in ddls:
+            try:
                 db.session.execute(text(ddl))
-        db.session.commit()
+                db.session.commit()
+            except SQLAlchemyError as e:
+                # Se a variante IF NOT EXISTS não for suportada, tenta sem ela e ignora duplicatas
+                msg = str(e).lower()
+                if 'syntax' in msg or 'if not exists' in msg:
+                    try:
+                        fallback = ddl.replace(' IF NOT EXISTS', '')
+                        db.session.execute(text(fallback))
+                        db.session.commit()
+                    except SQLAlchemyError as e2:
+                        # Ignora erro de coluna duplicada
+                        if 'duplicate column' in str(e2).lower() or '1060' in str(e2):
+                            db.session.rollback()
+                            continue
+                        db.session.rollback()
+                        raise
+                else:
+                    # Ignora erro de coluna duplicada
+                    if 'duplicate column' in msg or '1060' in msg:
+                        db.session.rollback()
+                        continue
+                    db.session.rollback()
+                    raise
     
     # Executar migração leve dentro do app context
     try:

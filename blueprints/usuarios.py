@@ -107,31 +107,46 @@ def login():
         
         usuario = Usuario.query.filter_by(email=email, ativo=True).first()
         
-        if usuario and check_password_hash(usuario.senha_hash, senha):
-            session['user_id'] = usuario.id
-            session['user_nome'] = usuario.nome
-            session['user_email'] = usuario.email
-            
-            # Atualizar último login
-            from datetime import datetime
-            usuario.ultimo_login = datetime.utcnow()
-            db.session.commit()
-            
-            flash(f'Bem-vindo(a) de volta, {usuario.nome}!', 'success')
-            
-            # Verificar se há uma URL salva na sessão para redirecionamento
-            redirect_url = session.pop('redirect_after_login', None)
-            if redirect_url:
-                return redirect(redirect_url)
-            
-            # Redirecionar para a página que o usuário estava tentando acessar (fallback)
-            next_page = request.args.get('next')
-            if next_page and next_page.startswith('/'):
-                return redirect(next_page)
-            return redirect(url_for('loja.index'))
-        else:
+        if not usuario:
             flash('Email ou senha incorretos.', 'error')
             return render_template('usuarios/login.html')
+        
+        # Contas criadas via Google podem não ter senha definida
+        if not usuario.senha_hash:
+            flash('Sua conta foi criada via Google. Entre com o Google e defina uma senha em "Editar Perfil" para ativar o login por email/senha.', 'error')
+            return render_template('usuarios/login.html')
+        
+        try:
+            senha_ok = check_password_hash(usuario.senha_hash, senha)
+        except Exception:
+            senha_ok = False
+        
+        if not senha_ok:
+            flash('Email ou senha incorretos.', 'error')
+            return render_template('usuarios/login.html')
+        
+        # Login OK
+        session['user_id'] = usuario.id
+        session['user_nome'] = usuario.nome
+        session['user_email'] = usuario.email
+        
+        # Atualizar último login
+        from datetime import datetime
+        usuario.ultimo_login = datetime.utcnow()
+        db.session.commit()
+        
+        flash(f'Bem-vindo(a) de volta, {usuario.nome}!', 'success')
+        
+        # Verificar se há uma URL salva na sessão para redirecionamento
+        redirect_url = session.pop('redirect_after_login', None)
+        if redirect_url:
+            return redirect(redirect_url)
+        
+        # Redirecionar para a página que o usuário estava tentando acessar (fallback)
+        next_page = request.args.get('next')
+        if next_page and next_page.startswith('/'):
+            return redirect(next_page)
+        return redirect(url_for('loja.index'))
     
     return render_template('usuarios/login.html')
 
@@ -234,20 +249,20 @@ def editar_perfil():
         if logradouro or cidade or estado or cep:
             usuario.endereco = f"{logradouro}, {numero_endereco} - {bairro} - {cidade}/{estado} - {cep}".strip(', -/')
         
-        # Se forneceu senha atual, verificar e atualizar senha
-        if senha_atual:
-            if not check_password_hash(usuario.senha_hash, senha_atual):
-                flash('Senha atual incorreta.', 'error')
-                return render_template('usuarios/editar_perfil.html', usuario=usuario)
-            
+        # Atualização/definição de senha
+        if nova_senha:
             if len(nova_senha) < 6:
                 flash('Nova senha deve ter pelo menos 6 caracteres.', 'error')
                 return render_template('usuarios/editar_perfil.html', usuario=usuario)
-            
             if nova_senha != confirmar_senha:
                 flash('As senhas não coincidem.', 'error')
                 return render_template('usuarios/editar_perfil.html', usuario=usuario)
-            
+            if usuario.senha_hash:
+                # Requer confirmação da senha atual quando já existe
+                if not senha_atual or not check_password_hash(usuario.senha_hash, senha_atual):
+                    flash('Senha atual incorreta.', 'error')
+                    return render_template('usuarios/editar_perfil.html', usuario=usuario)
+            # Define ou atualiza a senha
             usuario.senha_hash = generate_password_hash(nova_senha)
         
         try:
