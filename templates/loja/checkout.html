@@ -54,12 +54,12 @@
                             </div>
                             {% endif %}
 
-                            {% if usuario.endereco %}
+                            {% if usuario.get_endereco_formatado() %}
                             <div class="info-item">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <div>
                                     <label>Endereço:</label>
-                                    <span class="user-value">{{ usuario.endereco }}</span>
+                                    <span class="user-value">{{ usuario.get_endereco_formatado() }}</span>
                                 </div>
                             </div>
                             {% endif %}

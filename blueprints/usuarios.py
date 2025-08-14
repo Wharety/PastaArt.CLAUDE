@@ -30,7 +30,14 @@ def registro():
         senha = request.form.get('senha', '')
         confirmar_senha = request.form.get('confirmar_senha', '')
         telefone = request.form.get('telefone', '').strip()
-        endereco = request.form.get('endereco', '').strip()
+        # Endereço normalizado
+        cep = request.form.get('cep', '').strip()
+        logradouro = request.form.get('logradouro', '').strip()
+        bairro = request.form.get('bairro', '').strip()
+        cidade = request.form.get('cidade', '').strip()
+        estado = request.form.get('estado', '').strip()
+        numero_endereco = request.form.get('numero_endereco', '').strip()
+        complemento_endereco = request.form.get('complemento_endereco', '').strip()
         
         # Validações
         if not nome or len(nome) < 2:
@@ -59,7 +66,15 @@ def registro():
             email=email,
             senha_hash=generate_password_hash(senha),
             telefone=telefone,
-            endereco=endereco
+            # Campo legado concatenado (opcional)
+            endereco=f"{logradouro}, {numero_endereco} - {bairro} - {cidade}/{estado} - {cep}".strip(', -/') if logradouro and cidade else None,
+            cep=cep,
+            logradouro=logradouro,
+            bairro=bairro,
+            cidade=cidade,
+            estado=estado,
+            numero_endereco=numero_endereco,
+            complemento_endereco=complemento_endereco
         )
         
         try:
@@ -188,7 +203,14 @@ def editar_perfil():
     if request.method == 'POST':
         nome = request.form.get('nome', '').strip()
         telefone = request.form.get('telefone', '').strip()
-        endereco = request.form.get('endereco', '').strip()
+        # Endereço normalizado
+        cep = request.form.get('cep', '').strip()
+        logradouro = request.form.get('logradouro', '').strip()
+        bairro = request.form.get('bairro', '').strip()
+        cidade = request.form.get('cidade', '').strip()
+        estado = request.form.get('estado', '').strip()
+        numero_endereco = request.form.get('numero_endereco', '').strip()
+        complemento_endereco = request.form.get('complemento_endereco', '').strip()
         senha_atual = request.form.get('senha_atual', '')
         nova_senha = request.form.get('nova_senha', '')
         confirmar_senha = request.form.get('confirmar_senha', '')
@@ -201,7 +223,16 @@ def editar_perfil():
         # Atualizar dados básicos
         usuario.nome = nome
         usuario.telefone = telefone
-        usuario.endereco = endereco
+        usuario.cep = cep
+        usuario.logradouro = logradouro
+        usuario.bairro = bairro
+        usuario.cidade = cidade
+        usuario.estado = estado
+        usuario.numero_endereco = numero_endereco
+        usuario.complemento_endereco = complemento_endereco
+        # Campo legado para compatibilidade em telas não migradas
+        if logradouro or cidade or estado or cep:
+            usuario.endereco = f"{logradouro}, {numero_endereco} - {bairro} - {cidade}/{estado} - {cep}".strip(', -/')
         
         # Se forneceu senha atual, verificar e atualizar senha
         if senha_atual:

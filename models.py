@@ -30,7 +30,16 @@ class Usuario(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     senha_hash = db.Column(db.String(200), nullable=True)  # Pode ser null para usuários sociais
     telefone = db.Column(db.String(20), nullable=True)
+    # Endereço agregado (legado/fallback)
     endereco = db.Column(db.Text(length=16383), nullable=True)  # TEXT
+    # Campos normalizados de endereço
+    cep = db.Column(db.String(9), nullable=True)
+    logradouro = db.Column(db.String(150), nullable=True)
+    bairro = db.Column(db.String(100), nullable=True)
+    cidade = db.Column(db.String(100), nullable=True)
+    estado = db.Column(db.String(2), nullable=True)
+    numero_endereco = db.Column(db.String(20), nullable=True)
+    complemento_endereco = db.Column(db.String(100), nullable=True)
     ativo = db.Column(db.Boolean, default=True)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     ultimo_login = db.Column(db.DateTime, nullable=True)
@@ -45,6 +54,31 @@ class Usuario(db.Model):
     
     def __repr__(self):
         return f'<Usuario {self.email}>'
+
+    def get_endereco_formatado(self) -> str:
+        """Retorna endereço formatado a partir dos campos normalizados, com fallback para campo agregado."""
+        partes = []
+        if self.logradouro:
+            logradouro_str = self.logradouro
+            if self.numero_endereco:
+                logradouro_str += f", {self.numero_endereco}"
+            if self.complemento_endereco:
+                logradouro_str += f" - {self.complemento_endereco}"
+            partes.append(logradouro_str)
+        if self.bairro:
+            partes.append(self.bairro)
+        cidade_estado = []
+        if self.cidade:
+            cidade_estado.append(self.cidade)
+        if self.estado:
+            cidade_estado.append(self.estado)
+        if cidade_estado:
+            partes.append('/'.join(cidade_estado))
+        if self.cep:
+            partes.append(self.cep)
+        if partes:
+            return ' - '.join(partes)
+        return self.endereco or ''
 
 class Pedido(db.Model):
     """Modelo para pedidos dos usuários"""

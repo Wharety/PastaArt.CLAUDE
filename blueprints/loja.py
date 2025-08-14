@@ -299,8 +299,9 @@ def finalizar_pedido():
         mensagem += f"Email: {usuario.email}\n"
         if usuario.telefone:
             mensagem += f"Telefone: {usuario.telefone}\n"
-        if usuario.endereco:
-            mensagem += f"Endereco: {usuario.endereco}\n"
+        endereco_formatado = usuario.get_endereco_formatado() if hasattr(usuario, 'get_endereco_formatado') else (usuario.endereco or '')
+        if endereco_formatado:
+            mensagem += f"Endereco: {endereco_formatado}\n"
         mensagem += f"\nItens do Pedido:\n"
         
         for cart_key, item in cart.items():

@@ -89,10 +89,10 @@
                 <span class="info-value">{{ pedido.usuario.telefone }}</span>
             </div>
             {% endif %}
-            {% if pedido.usuario.endereco %}
+            {% if pedido.usuario.get_endereco_formatado() %}
             <div class="info-row">
                 <span class="info-label">Endereço:</span>
-                <span class="info-value">{{ pedido.usuario.endereco }}</span>
+                <span class="info-value">{{ pedido.usuario.get_endereco_formatado() }}</span>
             </div>
             {% endif %}
             <div class="info-row">

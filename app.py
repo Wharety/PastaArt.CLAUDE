@@ -1,4 +1,5 @@
 from flask import Flask, url_for, request
+from sqlalchemy import text
 from models import db, Admin, Configuracao
 from blueprints.admin import admin_bp
 from blueprints.loja import loja_bp
@@ -95,6 +96,49 @@ def create_app():
     app.register_blueprint(configuracoes_bp, url_prefix='/admin')
     app.register_blueprint(usuarios_bp, url_prefix='/usuario')
     
+    # Migração leve: garantir colunas de endereço no MySQL
+    def ensure_usuario_address_columns():
+        try:
+            engine_name = db.engine.url.get_backend_name()
+        except Exception:
+            engine_name = ''
+        # Apenas para MySQL/MariaDB
+        if engine_name not in ('mysql', 'mariadb', 'mysql+pymysql'):
+            return
+        # Listar colunas existentes
+        existing_cols = set()
+        result = db.session.execute(text(
+            """
+            SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'usuarios'
+            """
+        ))
+        for row in result:
+            existing_cols.add(row[0])
+        # Colunas a criar: nome -> DDL
+        ddl_map = {
+            'cep': "ALTER TABLE usuarios ADD COLUMN cep VARCHAR(9) NULL",
+            'logradouro': "ALTER TABLE usuarios ADD COLUMN logradouro VARCHAR(150) NULL",
+            'bairro': "ALTER TABLE usuarios ADD COLUMN bairro VARCHAR(100) NULL",
+            'cidade': "ALTER TABLE usuarios ADD COLUMN cidade VARCHAR(100) NULL",
+            'estado': "ALTER TABLE usuarios ADD COLUMN estado VARCHAR(2) NULL",
+            'numero_endereco': "ALTER TABLE usuarios ADD COLUMN numero_endereco VARCHAR(20) NULL",
+            'complemento_endereco': "ALTER TABLE usuarios ADD COLUMN complemento_endereco VARCHAR(100) NULL",
+        }
+        for col_name, ddl in ddl_map.items():
+            if col_name not in existing_cols:
+                db.session.execute(text(ddl))
+        db.session.commit()
+    
+    # Executar migração leve dentro do app context
+    try:
+        with app.app_context():
+            ensure_usuario_address_columns()
+    except Exception as e:
+        debug_log(f"Falha ao aplicar migração leve de endereço: {e}", "WARNING")
+
     # Helper para gerar URLs de assets com versão (cache busting)
     def asset_url(filename: str) -> str:
         return url_for('static', filename=filename, v=app.config.get('ASSET_VERSION', '1'))

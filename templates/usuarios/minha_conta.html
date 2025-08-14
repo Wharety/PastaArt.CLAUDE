@@ -36,10 +36,10 @@
                         <span class="info-value">{{ usuario.telefone }}</span>
                     </div>
                     {% endif %}
-                    {% if usuario.endereco %}
+                    {% if usuario.get_endereco_formatado() %}
                     <div class="info-item">
                         <span class="info-label">Endereço:</span>
-                        <span class="info-value">{{ usuario.endereco }}</span>
+                        <span class="info-value">{{ usuario.get_endereco_formatado() }}</span>
                     </div>
                     {% endif %}
                     <div class="info-item">
