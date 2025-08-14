@@ -37,16 +37,18 @@ def debug_log(message, level="INFO"):
 def create_app():
     """Criar e configurar a aplicação Flask"""
     app = Flask(__name__)
-    # Garantir que alterações em templates .html sejam refletidas sem depender de reinício
-    # Útil especialmente em produção quando o serviço pode não ter reiniciado corretamente
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.jinja_env.auto_reload = True
     
     # Configurações
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'pasta-art-encanto-secret-key-2025')
     
     # Detectar ambiente de produção (LocalWeb/hospedagem compartilhada)
     is_production = os.getenv('FLASK_ENV') == 'production' or 'public_html' in os.getcwd()
+    
+    # Em desenvolvimento, forçar recarregamento automático de templates
+    if not is_production:
+        app.config['TEMPLATES_AUTO_RELOAD'] = True
+        if hasattr(app, 'jinja_env'):
+            app.jinja_env.auto_reload = True
     
     # Configuração do banco de dados
     db_host = os.getenv('DB_HOST', 'localhost')
