@@ -29,6 +29,7 @@ jobs:
         python -c "import requests; print('✅ Requests module available')"
         python -c "import flask; print('✅ Flask module available')"
         python -c "import app; print('✅ App imports successfully')"
+        python -c "from app import create_app; app = create_app(); print('✅ App created successfully')"
         
     - name: Deploy to VPS
       if: github.ref == 'refs/heads/main'
