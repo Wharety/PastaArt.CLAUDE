@@ -1,120 +1,143 @@
 #!/usr/bin/env python3
 """
-Script para gerar favicons em diferentes tamanhos a partir do SVG
-Pasta Art Encanto - Sistema de Favicons
+Script para gerar favicons em diferentes tamanhos a partir de uma imagem fonte
+(SVG ou PNG). Mantém o restante do projeto inalterado.
 """
 
-import os
 import sys
 from pathlib import Path
 
-def check_dependencies():
-    """Verifica se as dependências estão instaladas"""
-    try:
-        import cairosvg
-        return True
-    except ImportError:
-        print("❌ Erro: cairosvg não está instalado")
-        print("📦 Instale com: pip install cairosvg")
-        return False
 
-def generate_favicons():
-    """Gera favicons em diferentes tamanhos"""
-    
-    # Configurações
-    svg_path = Path("static/images/favicon.svg")
+def detect_source_image() -> Path:
+    """Detecta o arquivo de origem do favicon.
+
+    Prioridade:
+    1) static/images/favicon-source.png (nova imagem enviada)
+    2) static/images/favicon.svg (legado)
+    """
+    png_source = Path("static/images/favicon-source.png")
+    svg_source = Path("static/images/favicon.svg")
+
+    if png_source.exists():
+        return png_source
+    return svg_source
+
+
+def generate_favicons() -> bool:
+    """Gera favicons nos tamanhos necessários a partir do arquivo fonte."""
+
     output_dir = Path("static/images")
-    
-    # Tamanhos para gerar
+
+    # Tamanhos a gerar (somente favicons / ícones, nada além disso)
     sizes = {
         "favicon-16x16.png": 16,
         "favicon-32x32.png": 32,
+        "favicon-48x48.png": 48,
+        "favicon-64x64.png": 64,
+        "favicon-128x128.png": 128,
+        "favicon-256x256.png": 256,
         "apple-touch-icon.png": 180,
         "favicon-192x192.png": 192,
-        "favicon-512x512.png": 512
+        "favicon-512x512.png": 512,
     }
-    
-    # Verifica se o SVG existe
-    if not svg_path.exists():
-        print(f"❌ Erro: {svg_path} não encontrado")
+
+    source_path = detect_source_image()
+    if not source_path.exists():
+        print(f"❌ Erro: arquivo de origem não encontrado: {source_path}")
         return False
-    
-    # Cria diretório de saída se não existir
+
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     try:
-        import cairosvg
-        
-        print("🎨 Gerando favicons...")
-        
-        for filename, size in sizes.items():
-            output_path = output_dir / filename
-            
-            # Converte SVG para PNG
-            cairosvg.svg2png(
-                url=str(svg_path),
-                write_to=str(output_path),
-                output_width=size,
-                output_height=size
-            )
-            
-            print(f"✅ {filename} ({size}x{size})")
-        
+        if source_path.suffix.lower() == ".svg":
+            # Converter a partir de SVG (usa cairosvg se disponível)
+            try:
+                import cairosvg  # type: ignore
+            except ImportError:
+                print("❌ Erro: cairosvg não está instalado para converter SVG → PNG")
+                print("📦 Instale com: pip install cairosvg")
+                return False
+
+            print("🎨 Gerando favicons a partir do SVG...")
+            for filename, size in sizes.items():
+                output_path = output_dir / filename
+                cairosvg.svg2png(
+                    url=str(source_path),
+                    write_to=str(output_path),
+                    output_width=size,
+                    output_height=size,
+                )
+                print(f"✅ {filename} ({size}x{size})")
+        else:
+            # Converter a partir de PNG (usa Pillow)
+            try:
+                from PIL import Image  # type: ignore
+            except ImportError:
+                print("❌ Erro: Pillow não está instalado para converter PNG → PNG")
+                print("📦 Instale com: pip install Pillow")
+                return False
+
+            print("🎨 Gerando favicons a partir do PNG...")
+            with Image.open(source_path) as img:
+                for filename, size in sizes.items():
+                    output_path = output_dir / filename
+                    resized = img.convert("RGBA").resize((size, size), Image.LANCZOS)
+                    resized.save(output_path, format="PNG")
+                    print(f"✅ {filename} ({size}x{size})")
+
         print("\n🎉 Favicons gerados com sucesso!")
         return True
-        
-    except Exception as e:
-        print(f"❌ Erro ao gerar favicons: {e}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"❌ Erro ao gerar favicons: {exc}")
         return False
 
-def create_ico_file():
-    """Cria arquivo ICO a partir do PNG 32x32"""
+
+def create_ico_file() -> bool:
+    """Cria `favicon.ico` com múltiplos tamanhos (16/32/48)."""
     try:
-        from PIL import Image
-        
-        png_path = Path("static/images/favicon-32x32.png")
-        ico_path = Path("static/images/favicon.ico")
-        
-        if png_path.exists():
-            # Abre o PNG e salva como ICO
-            img = Image.open(png_path)
-            img.save(ico_path, format='ICO', sizes=[(16, 16), (32, 32), (48, 48)])
-            print("✅ favicon.ico criado")
-            return True
-        else:
-            print("❌ favicon-32x32.png não encontrado")
-            return False
-            
+        from PIL import Image  # type: ignore
     except ImportError:
-        print("⚠️  PIL/Pillow não instalado - favicon.ico não será criado")
+        print("⚠️  Pillow não instalado - favicon.ico não será criado")
         print("📦 Instale com: pip install Pillow")
         return False
-    except Exception as e:
-        print(f"❌ Erro ao criar ICO: {e}")
+
+    output_dir = Path("static/images")
+    ico_path = output_dir / "favicon.ico"
+    sizes = [
+        (16, 16),
+        (32, 32),
+        (48, 48),
+    ]
+
+    try:
+        # Prioriza gerar ICO a partir da melhor origem disponível
+        source_path = detect_source_image()
+        with Image.open(source_path) as img:
+            frames = [img.convert("RGBA").resize(size, Image.LANCZOS) for size in sizes]
+            frames[0].save(ico_path, format="ICO", sizes=sizes)
+        print("✅ favicon.ico criado")
+        return True
+    except Exception as exc:  # noqa: BLE001
+        print(f"❌ Erro ao criar ICO: {exc}")
         return False
 
-def main():
-    """Função principal"""
+
+def main() -> None:
     print("🍫 Pasta Art Encanto - Gerador de Favicons")
     print("=" * 50)
-    
-    # Verifica dependências
-    if not check_dependencies():
-        sys.exit(1)
-    
+
     # Gera favicons PNG
     if generate_favicons():
         # Tenta criar ICO
         create_ico_file()
-        
+
         print("\n📋 Próximos passos:")
-        print("1. Teste os favicons no navegador")
-        print("2. Verifique se aparecem corretamente")
-        print("3. Teste em dispositivos móveis")
-        print("4. Valide o PWA se necessário")
-        
+        print("1. Limpe o cache do navegador (ou use uma janela anônima)")
+        print("2. Verifique se os ícones aparecem corretamente nas páginas")
+        print("3. Em dispositivos Apple, confira o atalho na tela inicial (180x180)")
     else:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
