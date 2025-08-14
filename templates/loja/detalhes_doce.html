@@ -14,7 +14,7 @@
         <div class="product-detail-content">
             <div class="product-image-section">
                 {% if doce.imagem_url %}
-                    <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" class="product-detail-image" . decoding="async">
+                    <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" class="product-detail-image" decoding="async">
                 {% else %}
                     <div class="product-detail-placeholder">
                         <i class="fas fa-birthday-cake"></i>
