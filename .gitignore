@@ -22,7 +22,6 @@ wheels/
 MANIFEST
 
 # Virtual Environment
-venv/
 env/
 ENV/
 env.bak/
