@@ -37,6 +37,10 @@ def debug_log(message, level="INFO"):
 def create_app():
     """Criar e configurar a aplicação Flask"""
     app = Flask(__name__)
+    # Garantir que alterações em templates .html sejam refletidas sem depender de reinício
+    # Útil especialmente em produção quando o serviço pode não ter reiniciado corretamente
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.jinja_env.auto_reload = True
     
     # Configurações
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'pasta-art-encanto-secret-key-2025')
