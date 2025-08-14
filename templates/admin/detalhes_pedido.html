@@ -112,7 +112,7 @@
             <div class="order-item">
                 <div class="item-image">
                     {% if item.doce.imagem_url %}
-                    <img src="{{ url_for('static', filename=item.doce.imagem_url) }}" 
+                   <img src="{{ asset_url(item.doce.imagem_url) }}" 
                          alt="{{ item.doce.nome }}" class="product-thumb">
                     {% else %}
                     <div class="product-thumb-placeholder">

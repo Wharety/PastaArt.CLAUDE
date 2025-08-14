@@ -182,7 +182,7 @@
                 <div class="current-image">
                     <label class="form-label">Imagem Atual</label>
                     <div class="image-preview">
-                        <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" id="current-image">
+                       <img src="{{ asset_url(doce.imagem_url) }}" alt="{{ doce.nome }}" id="current-image">
                     </div>
                 </div>
                 {% endif %}
@@ -240,7 +240,7 @@
     <div class="product-card preview-card">
         <div class="product-image" id="preview-product-image">
             {% if doce and doce.imagem_url %}
-                <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}">
+               <img src="{{ asset_url(doce.imagem_url) }}" alt="{{ doce.nome }}">
             {% else %}
                 <div class="product-placeholder">
                     <i class="fas fa-birthday-cake"></i>

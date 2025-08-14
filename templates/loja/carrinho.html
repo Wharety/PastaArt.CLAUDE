@@ -28,7 +28,7 @@
                 <div class="cart-item">
                     <div class="item-image">
                         {% if item.imagem_url %}
-                            <img src="{{ url_for('static', filename=item.imagem_url) }}" alt="{{ item.nome }}">
+                           <img src="{{ asset_url(item.imagem_url) }}" alt="{{ item.nome }}">
                         {% else %}
                             <div class="item-placeholder">
                                 <i class="fas fa-birthday-cake"></i>

@@ -28,7 +28,7 @@
             <div class="product-card">
                 <div class="product-image">
                     {% if doce.imagem_url %}
-                        <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" loading="lazy" width="400" height="300" decoding="async">
+                       <img src="{{ asset_url(doce.imagem_url) }}" alt="{{ doce.nome }}" loading="lazy" width="400" height="300" decoding="async">
                     {% else %}
                         <div class="product-placeholder">
                             <i class="fas fa-birthday-cake"></i>

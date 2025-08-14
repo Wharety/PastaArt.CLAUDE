@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, url_for, request
 from models import db, Admin, Configuracao
 from blueprints.admin import admin_bp
 from blueprints.loja import loja_bp
@@ -40,6 +40,14 @@ def create_app():
     
     # Configurações
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'pasta-art-encanto-secret-key-2025')
+    # Versão de assets para cache busting (definível por variável de ambiente)
+    app.config['ASSET_VERSION'] = (
+        os.getenv('ASSET_VERSION')
+        or os.getenv('RELEASE')
+        or datetime.now().strftime('%Y%m%d%H%M%S')
+    )
+    # Cache padrão de arquivos estáticos (1 ano)
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
     
     # Detectar ambiente de produção (LocalWeb/hospedagem compartilhada)
     is_production = os.getenv('FLASK_ENV') == 'production' or 'public_html' in os.getcwd()
@@ -87,6 +95,36 @@ def create_app():
     app.register_blueprint(configuracoes_bp, url_prefix='/admin')
     app.register_blueprint(usuarios_bp, url_prefix='/usuario')
     
+    # Helper para gerar URLs de assets com versão (cache busting)
+    def asset_url(filename: str) -> str:
+        return url_for('static', filename=filename, v=app.config.get('ASSET_VERSION', '1'))
+    app.jinja_env.globals['asset_url'] = asset_url
+
+    # Cabeçalhos de cache: HTML não é cacheado; estáticos são fortemente cacheados
+    @app.after_request
+    def add_cache_headers(response):
+        try:
+            request_path = request.path
+        except Exception:
+            request_path = ''
+        if request_path.startswith('/static/'):
+            # Regras específicas por tipo de arquivo
+            _, ext = os.path.splitext(request_path.lower())
+            if ext in {'.css', '.js'}:
+                response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+            elif ext in {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.ico'}:
+                response.headers['Cache-Control'] = 'public, max-age=2592000'
+            elif ext in {'.json', '.webmanifest'}:
+                response.headers['Cache-Control'] = 'public, max-age=604800'
+            else:
+                response.headers['Cache-Control'] = 'public, max-age=604800'
+        else:
+            # Conteúdo HTML sempre revalida
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
+
     # Context processor para configurações globais
     @app.context_processor
     def inject_configuracoes():

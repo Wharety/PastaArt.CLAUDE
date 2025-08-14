@@ -192,7 +192,7 @@
         <div class="product-mini-card">
             <div class="product-mini-image">
                 {% if doce.imagem_url %}
-                    <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}">
+                    <img src="{{ asset_url(doce.imagem_url) }}" alt="{{ doce.nome }}">
                 {% else %}
                     <div class="product-mini-placeholder">
                         <i class="fas fa-birthday-cake"></i>

@@ -1,0 +1,38 @@
+[Unit]
+Description=Pasta Art Encanto Flask App
+After=network.target
+
+[Service]
+Type=simple
+User=pasta_art
+Group=pasta_art
+WorkingDirectory=/home/pasta_art/PastaArt.CLAUDE
+Environment=PATH=/home/pasta_art/PastaArt.CLAUDE/venv/bin
+Environment=FLASK_ENV=production
+Environment=SECRET_KEY=pasta-art-encanto-secret-key-2025
+
+# Configurações do Google OAuth
+Environment=GOOGLE_CLIENT_ID=seu-client-id-aqui
+Environment=GOOGLE_CLIENT_SECRET=seu-client-secret-aqui
+
+# Configurações do banco de dados (se necessário)
+# Environment=DB_HOST=localhost
+# Environment=DB_PORT=3306
+# Environment=DB_NAME=pasta_art
+# Environment=DB_USER=pasta_art_user
+# Environment=DB_PASSWORD=sua-senha-aqui
+
+ExecStart=/home/pasta_art/PastaArt.CLAUDE/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+
+# Configurações de segurança
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/pasta_art/PastaArt.CLAUDE
+
+[Install]
+WantedBy=multi-user.target

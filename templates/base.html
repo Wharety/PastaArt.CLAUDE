@@ -11,11 +11,11 @@
     <title>{% block title %}{{ config.site_nome or 'Pasta Art Encanto' }} - Doces Personalizados{% endblock %}</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset_url('images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset_url('images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset_url('images/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset_url('images/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset_url('site.webmanifest') }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,13 +26,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?v=2025">
     
     <!-- CSS Principal -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/main.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/loja.css') }}">
     
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
     <!-- Header -->
     <header class="header" role="banner">
         <div class="container">
@@ -40,7 +39,7 @@
                 <!-- Logo -->
                             <div class="logo">
                 <a href="{{ url_for('loja.index') }}">
-                    <img src="{{ url_for('static', filename=config.site_logo or 'images/logo.svg') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="logo-img" width="200" height="50" decoding="async">
+                    <img src="{{ asset_url(config.site_logo or 'images/logo.svg') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="logo-img" width="200" height="50" decoding="async">
                 </a>
             </div>
                 
@@ -110,7 +109,7 @@
             <!-- Banner - Apenas na página principal -->
         {% if request.endpoint == 'loja.index' %}
         <div class="banner">
-            <img src="{{ url_for('static', filename=config.site_banner or 'images/banner.webp') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="banner-logo" width="1200" height="200" decoding="async" fetchpriority="high">
+            <img src="{{ asset_url(config.site_banner or 'images/banner.webp') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="banner-logo" width="1200" height="200" decoding="async" fetchpriority="high">
         </div>
         {% endif %}
 
@@ -192,8 +191,8 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script src="{{ asset_url('js/main.js') }}"></script>
+    <script src="{{ asset_url('js/modal.js') }}"></script>
     <script>
         // Mobile Menu Toggle
         function toggleMobileMenu() {

@@ -235,7 +235,7 @@
                 <div>
                     <label class="form-label">Logo Atual</label>
                     <div class="current-image">
-                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo atual" id="currentLogo">
+                        <img src="{{ asset_url('images/logo.svg') }}" alt="Logo atual" id="currentLogo">
                     </div>
                 </div>
                 <div>
@@ -263,7 +263,7 @@
                 <div>
                     <label class="form-label">Banner Atual</label>
                     <div class="current-image">
-                        <img src="{{ url_for('static', filename='images/banner.webp') }}" alt="Banner atual" id="currentBanner">
+                        <img src="{{ asset_url('images/banner.webp') }}" alt="Banner atual" id="currentBanner">
                     </div>
                 </div>
                 <div>
@@ -315,7 +315,7 @@
                         <!-- Imagem Atual -->
                         <div class="current-image">
                             <label class="preview-label">Imagem Atual:</label>
-                            <img src="{{ url_for('static', filename=configs.get('card_tradicional_image', 'images/doces_tradicionais.png')) }}" 
+                            <img src="{{ asset_url(configs.get('card_tradicional_image', 'images/doces_tradicionais.png')) }}" 
                                  alt="Imagem atual do card tradicional" id="currentTradicionalImage">
                         </div>
                         
@@ -356,7 +356,7 @@
                         <!-- Imagem Atual -->
                         <div class="current-image">
                             <label class="preview-label">Imagem Atual:</label>
-                            <img src="{{ url_for('static', filename=configs.get('card_personalizado_image', 'images/doces_personalizados.png')) }}" 
+                            <img src="{{ asset_url(configs.get('card_personalizado_image', 'images/doces_personalizados.png')) }}" 
                                  alt="Imagem atual do card personalizado" id="currentPersonalizadoImage">
                         </div>
                         

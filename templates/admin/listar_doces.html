@@ -57,7 +57,7 @@
                     <tr class="product-row" data-status="{{ 'active' if doce.ativo else 'inactive' }}">
                         <td class="product-image-cell">
                             {% if doce.imagem_url %}
-                                <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}" class="table-product-image">
+                                <img src="{{ asset_url(doce.imagem_url) }}" alt="{{ doce.nome }}" class="table-product-image">
                             {% else %}
                                 <div class="table-product-placeholder">
                                     <i class="fas fa-birthday-cake"></i>
@@ -172,7 +172,7 @@
                 <div class="product-card-header">
                     <div class="product-image-mobile">
                         {% if doce.imagem_url %}
-                            <img src="{{ url_for('static', filename=doce.imagem_url) }}" alt="{{ doce.nome }}">
+                            <img src="{{ asset_url(doce.imagem_url) }}" alt="{{ doce.nome }}">
                         {% else %}
                             <div class="product-placeholder-mobile">
                                 <i class="fas fa-birthday-cake"></i>

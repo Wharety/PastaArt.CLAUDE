@@ -15,7 +15,7 @@
         <div class="categories-grid">
             <!-- Categoria Tradicional -->
             <div class="category-card">
-                <div class="category-image-tradicional" data-bg-image="{{ url_for('static', filename=config.card_tradicional_image or 'images/doces_tradicionais.png') }}">
+                <div class="category-image-tradicional" data-bg-image="{{ asset_url(config.card_tradicional_image or 'images/doces_tradicionais.png') }}">
                     <div class="category-overlay">
                         <h3 class="category-title">{{ config.tradicional_title or 'Doces Tradicionais' }}</h3>
                         <p class="category-sub">{{ config.tradicional_description or 'Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados. Perfeitos para qualquer momento do dia.' }}</p>
@@ -46,7 +46,7 @@
 
             <!-- Categoria Personalizado -->
             <div class="category-card">
-                <div class="category-image-personalizado" data-bg-image="{{ url_for('static', filename=config.card_personalizado_image or 'images/doces_personalizados.png') }}">
+                <div class="category-image-personalizado" data-bg-image="{{ asset_url(config.card_personalizado_image or 'images/doces_personalizados.png') }}">
                     <div class="category-overlay">
                         <h3 class="category-title">{{ config.personalizado_title or 'Doces Personalizados' }}</h3>
                         <p class="category-sub">{{ config.personalizado_description or 'Doces únicos e personalizados para seus eventos especiais. Aniversários, casamentos, eventos corporativos e muito mais.' }}</p>
