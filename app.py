@@ -44,12 +44,6 @@ def create_app():
     # Detectar ambiente de produção (LocalWeb/hospedagem compartilhada)
     is_production = os.getenv('FLASK_ENV') == 'production' or 'public_html' in os.getcwd()
     
-    # Em desenvolvimento, forçar recarregamento automático de templates
-    if not is_production:
-        app.config['TEMPLATES_AUTO_RELOAD'] = True
-        if hasattr(app, 'jinja_env'):
-            app.jinja_env.auto_reload = True
-    
     # Configuração do banco de dados
     db_host = os.getenv('DB_HOST', 'localhost')
     db_port = os.getenv('DB_PORT', '3306')
