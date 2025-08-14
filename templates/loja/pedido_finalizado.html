@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Pedido Enviado - Pasta Art Encanto{% endblock %}
+{% block title %}Pedido Confirmado - Pasta Art Encanto{% endblock %}
 
 {% block content %}
 <section class="order-success-section">
@@ -10,8 +10,8 @@
                 <i class="fas fa-check-circle"></i>
             </div>
             
-            <h1 class="success-title">{{ config.pedido_sucesso_titulo or 'Pedido Enviado com Sucesso!' }}</h1>
-            <p class="success-subtitle">{{ (config.pedido_sucesso_subtitulo or 'Olá {nome}, seu pedido foi enviado para nosso WhatsApp').replace('{nome}', nome) }}</p>
+            <h1 class="success-title">{{ config.pedido_sucesso_titulo or 'Pedido realizado com sucesso!' }}</h1>
+            <p class="success-subtitle">{{ ('Olá {nome}, registramos seu pedido com sucesso. Enviamos um e-mail de confirmação.' if emails_sent else 'Olá {nome}, registramos seu pedido com sucesso. Em breve entraremos em contato via WhatsApp.').replace('{nome}', nome) }}</p>
             
             <div class="order-details">
                 {% if pedido_id %}
@@ -31,21 +31,18 @@
                     <span>Resposta em até <strong>{{ config.pedido_tempo_resposta or '1 hora' }}</strong></span>
                 </div>
                 
+                {% if emails_sent %}
                 <div class="detail-item">
-                                            <i class="fab fa-whatsapp"></i>
-                    <span>Confirmação via <strong>WhatsApp</strong></span>
+                    <i class="fas fa-envelope"></i>
+                    <span>Confirmação enviada por <strong>e-mail</strong></span>
+                </div>
+                {% endif %}
+                <div class="detail-item">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>Nossa equipe entrará em contato via <strong>WhatsApp</strong></span>
                 </div>
             </div>
 
-            <div class="whatsapp-action">
-                <button onclick="openWhatsApp()" class="btn btn-primary btn-large">
-                    <i class="fab fa-whatsapp"></i>
-                    {{ config.pedido_whatsapp_texto or 'Abrir WhatsApp' }}
-                </button>
-                <p class="whatsapp-note">
-                    Clique no botão acima para abrir o WhatsApp com sua mensagem pré-preenchida
-                </p>
-            </div>
 
             <div class="next-steps">
                 <h3>Próximos Passos:</h3>
@@ -94,11 +91,6 @@
                     <i class="fas fa-list"></i>
                     Ver Meus Pedidos
                 </a>
-                
-                <button onclick="openWhatsApp()" class="btn btn-primary btn-large">
-                    <i class="fab fa-whatsapp"></i>
-                    {{ config.pedido_whatsapp_texto or 'Abrir WhatsApp' }} Novamente
-                </button>
             </div>
         </div>
     </div>
@@ -117,41 +109,6 @@
 
 {% block extra_scripts %}
 <script>
-// Função para abrir WhatsApp diretamente
-function openWhatsApp() {
-    // Usar a URL da API do WhatsApp que é mais direta
-    const whatsappUrl = '{{ whatsapp_url }}';
-    
-    // Abrir em nova aba/app
-    window.open(whatsappUrl, '_blank');
-}
-
-// Abrir WhatsApp automaticamente em alguns segundos (opcional)
-setTimeout(function() {
-    showConfirm('Deseja abrir o WhatsApp agora para enviar seu pedido?', 'Abrir WhatsApp', 'fab fa-whatsapp').then(function(result) {
-        if (result) {
-            openWhatsApp();
-        }
-    });
-}, 3000);
-
-// Funções de compartilhamento
-function shareOnFacebook() {
-    const url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.origin);
-    window.open(url, '_blank', 'width=600,height=400');
-}
-
-function shareOnInstagram() {
-    // Instagram não permite compartilhamento direto via URL, então abrimos o perfil
-    showAlert('Siga-nos no Instagram @pastaartencanto para ver mais doces deliciosos!', 'Instagram', 'fab fa-instagram');
-}
-
-function shareOnWhatsApp() {
-    const text = 'Acabei de fazer um pedido na Pasta Art Encanto! Doces personalizados deliciosos 🍰';
-    const url = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + window.location.origin);
-    window.open(url, '_blank');
-}
-
 // Animação dos steps
 const steps = document.querySelectorAll('.step');
 steps.forEach((step, index) => {

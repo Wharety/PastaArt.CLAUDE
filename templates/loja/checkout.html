@@ -92,8 +92,7 @@
                         <div class="form-actions">
                             {% if usuario.telefone %}
                             <button type="submit" class="btn btn-primary btn-large">
-                                <i class="fab fa-whatsapp"></i>
-                                {{ config.checkout_botao_texto or 'Enviar Pedido via WhatsApp' }}
+                                {{ config.checkout_botao_texto or 'Confirmar Pedido' }}
                             </button>
                             {% else %}
                             <button type="button" class="btn btn-primary btn-large" disabled>

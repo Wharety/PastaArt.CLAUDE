@@ -4,6 +4,7 @@ from urllib.parse import quote
 import json
 from colorama import Fore, Style
 from datetime import datetime
+from services.email_service import send_order_emails
 
 def debug_log(message, level="INFO"):
     """Log colorido para debug - cópia local"""
@@ -293,57 +294,31 @@ def finalizar_pedido():
         db.session.commit()
         debug_log(f"Pedido #{pedido.id} criado para usuário {usuario.nome}", "SUCCESS")
         
-        # Gerar mensagem do WhatsApp (versão simplificada)
-        mensagem = f"Novo Pedido #{pedido.numero_pedido} - Pasta Art Encanto\n\n"
-        mensagem += f"Cliente: {usuario.nome}\n"
-        mensagem += f"Email: {usuario.email}\n"
-        if usuario.telefone:
-            mensagem += f"Telefone: {usuario.telefone}\n"
-        endereco_formatado = usuario.get_endereco_formatado() if hasattr(usuario, 'get_endereco_formatado') else (usuario.endereco or '')
-        if endereco_formatado:
-            mensagem += f"Endereco: {endereco_formatado}\n"
-        mensagem += f"\nItens do Pedido:\n"
-        
-        for cart_key, item in cart.items():
-            subtotal = float(item['preco']) * int(item['quantidade'])
-            # Extrair o sabor da chave do carrinho
-            parts = cart_key.split('_', 1)
-            sabor_info = f" ({parts[1]})" if len(parts) > 1 else ""
-            mensagem += f"- {item['nome']}{sabor_info} - Qtd: {item['quantidade']} - R$ {subtotal:.2f}\n"
-        
-        mensagem += f"\nTotal: R$ {total:.2f}\n\n"
-        mensagem += f"Pedido: {pedido.numero_pedido}\n"
-        mensagem += "Obrigado pela preferencia!"
-        
-        # Buscar número do WhatsApp das configurações
-        from models import Configuracao
-        whatsapp_config = Configuracao.query.filter_by(chave='whatsapp').first()
-        whatsapp_numero = whatsapp_config.valor if whatsapp_config else "5566999348738"
-        
-        # Limpar o número (remover caracteres não numéricos)
-        whatsapp_numero_limpo = ''.join(filter(str.isdigit, whatsapp_numero))
-        
-        # Garantir que comece com 55 (código do Brasil)
-        if not whatsapp_numero_limpo.startswith('55'):
-            whatsapp_numero_limpo = '55' + whatsapp_numero_limpo
-        
-        # Criar URL do WhatsApp com codificação simples
-        debug_log(f"Mensagem original: {mensagem[:100]}...", "INFO")
-        mensagem_codificada = quote(mensagem)
-        whatsapp_url = f"https://wa.me/{whatsapp_numero_limpo}?text={mensagem_codificada}"
-        debug_log(f"URL WhatsApp: {whatsapp_url[:100]}...", "INFO")
+        # Enviar emails de confirmação (cliente e vendedora)
+        emails_sent = False
+        try:
+            emails_sent = send_order_emails(pedido)
+            debug_log("Emails de confirmação processados", "SUCCESS" if emails_sent else "WARNING")
+        except Exception as e:
+            debug_log(f"Erro ao enviar emails: {str(e)}", "ERROR")
         
         # Limpar carrinho após finalizar pedido
         session.pop('cart', None)
         session.modified = True
         
-        flash(f'Pedido #{pedido.numero_pedido} realizado com sucesso!', 'success')
+        flash(
+            f"Pedido #{pedido.numero_pedido} realizado com sucesso! " +
+            ("Enviamos a confirmação por e-mail." if emails_sent else "Em breve entraremos em contato pelo WhatsApp."),
+            'success'
+        )
         
-        return render_template('loja/pedido_finalizado.html', 
-                             whatsapp_url=whatsapp_url, 
-                             nome=usuario.nome, 
-                             total=total,
-                             pedido_id=pedido.numero_pedido)
+        return render_template(
+            'loja/pedido_finalizado.html',
+            nome=usuario.nome,
+            total=total,
+            pedido_id=pedido.numero_pedido,
+            emails_sent=emails_sent,
+        )
         
     except Exception as e:
         db.session.rollback()

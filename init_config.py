@@ -157,7 +157,7 @@ def init_configuracoes():
         },
         {
             'chave': 'checkout_botao_texto',
-            'valor': 'Enviar Pedido via WhatsApp',
+            'valor': 'Confirmar Pedido',
             'descricao': 'Texto do botão de finalização do pedido',
             'tipo': 'texto',
             'categoria': 'checkout'

@@ -548,6 +548,88 @@
         </div>
     </div>
 
+    <!-- SEÇÃO: CONFIGURAÇÕES DE EMAIL -->
+    <div class="config-section">
+        <div class="config-section-header">
+            <i class="fas fa-envelope-open-text"></i>
+            <h3>Configurações de Email (SMTP)</h3>
+        </div>
+        <div class="config-section-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Importante:</strong> Configure estes dados para enviar emails automáticos de confirmação de pedidos.
+                <br>Para Gmail, use uma senha de app. <a href="#" onclick="showEmailHelp()">Ver instruções detalhadas</a>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="email_host" class="form-label">Servidor SMTP</label>
+                    <input type="text" id="email_host" name="email_host" class="form-control" 
+                           value="{{ configs.get('email_host', 'smtp.gmail.com') }}"
+                           placeholder="smtp.gmail.com">
+                    <small class="form-hint">Para Gmail: smtp.gmail.com</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email_port" class="form-label">Porta SMTP</label>
+                    <input type="number" id="email_port" name="email_port" class="form-control" 
+                           value="{{ configs.get('email_port', '587') }}"
+                           placeholder="587">
+                    <small class="form-hint">Para Gmail: 587 (TLS) ou 465 (SSL)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email_user" class="form-label">Email do Remetente</label>
+                    <input type="email" id="email_user" name="email_user" class="form-control" 
+                           value="{{ configs.get('email_user', 'agendamento.pastaart@gmail.com') }}"
+                           placeholder="agendamento.pastaart@gmail.com">
+                    <small class="form-hint">Email que enviará as confirmações</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email_password" class="form-label">Senha do Email</label>
+                    <input type="password" id="email_password" name="email_password" class="form-control" 
+                           value="{{ configs.get('email_password', '') }}"
+                           placeholder="Senha de app do Gmail">
+                    <small class="form-hint">⚠️ Para Gmail, use uma senha de app (não a senha normal)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email_from" class="form-label">Nome do Remetente</label>
+                    <input type="text" id="email_from" name="email_from" class="form-control" 
+                           value="{{ configs.get('email_from', 'Pasta Art Encanto') }}"
+                           placeholder="Pasta Art Encanto">
+                    <small class="form-hint">Nome que aparecerá como remetente</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email_site" class="form-label">Email da Vendedora</label>
+                    <input type="email" id="email_site" name="email_site" class="form-control" 
+                           value="{{ configs.get('email_site', 'agendamento.pastaart@gmail.com') }}"
+                           placeholder="agendamento.pastaart@gmail.com">
+                    <small class="form-hint">Email que receberá notificações de novos pedidos</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email_use_tls" class="form-label">Usar TLS</label>
+                    <select id="email_use_tls" name="email_use_tls" class="form-control">
+                        <option value="true" {% if configs.get('email_use_tls', 'true') == 'true' %}selected{% endif %}>Sim (Recomendado)</option>
+                        <option value="false" {% if configs.get('email_use_tls', 'true') == 'false' %}selected{% endif %}>Não</option>
+                    </select>
+                    <small class="form-hint">Para Gmail, sempre deixe como "Sim"</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" class="btn btn-outline" onclick="testEmailConfig()">
+                    <i class="fas fa-paper-plane"></i>
+                    Testar Configuração de Email
+                </button>
+                <small class="form-hint">Envia um email de teste para verificar se está funcionando</small>
+            </div>
+        </div>
+    </div>
+
     <!-- SEÇÃO: CONFIGURAÇÕES DA PÁGINA INICIAL -->
     <div class="config-section">
         <div class="config-section-header">
@@ -674,7 +756,7 @@
                 <div class="form-group">
                     <label for="checkout_botao_texto" class="form-label">Texto do Botão de Finalização</label>
                     <input type="text" id="checkout_botao_texto" name="checkout_botao_texto" class="form-control" 
-                           value="{{ configs.get('checkout_botao_texto', 'Enviar Pedido via WhatsApp') }}">
+                           value="{{ configs.get('checkout_botao_texto', 'Confirmar Pedido') }}">
                 </div>
                 
                 <div class="form-group">
@@ -1169,5 +1251,80 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar preview das redes sociais
     updateSocialPreview();
 });
+
+// Função para mostrar ajuda sobre configuração de email
+function showEmailHelp() {
+    const helpContent = `
+        <div style="text-align: left; padding: 20px;">
+            <h3 style="color: #495057; margin-bottom: 20px;">
+                <i class="fas fa-envelope"></i> Como Configurar Email Gmail
+            </h3>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #dc3545; margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> IMPORTANTE
+                </h4>
+                <p style="margin: 0;">Para Gmail, você DEVE usar uma <strong>senha de app</strong>, não a senha normal da conta.</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #495057; margin-bottom: 10px;">
+                    <i class="fas fa-step-forward"></i> Passo 1: Ativar Verificação em 2 Etapas
+                </h4>
+                <ol style="padding-left: 20px;">
+                    <li>Acesse: <code>https://myaccount.google.com/security</code></li>
+                    <li>Na seção "Como fazer login no Google"</li>
+                    <li>Clique em "Verificação em duas etapas"</li>
+                    <li>Siga as instruções para ativar</li>
+                </ol>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #495057; margin-bottom: 10px;">
+                    <i class="fas fa-step-forward"></i> Passo 2: Gerar Senha de App
+                </h4>
+                <ol style="padding-left: 20px;">
+                    <li>Volte para: <code>https://myaccount.google.com/security</code></li>
+                    <li>Na seção "Como fazer login no Google"</li>
+                    <li>Clique em "Senhas de app"</li>
+                    <li>Selecione o app: "E-mail"</li>
+                    <li>Selecione dispositivo: "Outro (nome personalizado)"</li>
+                    <li>Digite: "Pasta Art Encanto"</li>
+                    <li>Clique em "Gerar"</li>
+                    <li style="color: #dc3545;"><strong>ANOTE A SENHA: algo como "abcd efgh ijkl mnop"</strong></li>
+                </ol>
+            </div>
+            
+            <div style="background: #d4edda; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                <h4 style="color: #155724; margin-bottom: 10px;">
+                    <i class="fas fa-cog"></i> Configurações Recomendadas
+                </h4>
+                <ul style="padding-left: 20px; margin: 0;">
+                    <li><strong>Servidor SMTP:</strong> smtp.gmail.com</li>
+                    <li><strong>Porta:</strong> 587</li>
+                    <li><strong>Usar TLS:</strong> Sim</li>
+                    <li><strong>Email:</strong> agendamento.pastaart@gmail.com</li>
+                    <li><strong>Senha:</strong> A senha de app gerada</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    showAlert(helpContent, 'Configuração de Email Gmail', 'fas fa-envelope', true);
+}
+
+// Função para testar configuração de email
+function testEmailConfig() {
+    const emailUser = document.getElementById('email_user').value;
+    const emailPassword = document.getElementById('email_password').value;
+    
+    if (!emailUser || !emailPassword) {
+        showAlert('Configure o email e senha antes de testar.', 'Campos Obrigatórios', 'fas fa-exclamation-triangle');
+        return;
+    }
+    
+    // Simular teste (você pode implementar uma rota real para testar)
+    showAlert('Função de teste será implementada. Por favor, salve as configurações e teste fazendo um pedido.', 'Teste de Email', 'fas fa-info-circle');
+}
 </script>
 {% endblock %}

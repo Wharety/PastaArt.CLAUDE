@@ -157,7 +157,9 @@ def listar_configuracoes():
                 'admin_nao_pode_excluir', 'admin_form_info_basicas', 'admin_form_nome_produto',
                 'admin_form_descricao', 'admin_form_placeholder_nome', 'admin_form_placeholder_descricao',
                 'admin_form_hint_nome', 'admin_form_hint_descricao',
-                'facebook_url', 'instagram_url', 'whatsapp_url', 'tiktok_url', 'youtube_url', 'linkedin_url'
+                'facebook_url', 'instagram_url', 'whatsapp_url', 'tiktok_url', 'youtube_url', 'linkedin_url',
+                # Campos de configuração de email
+                'email_host', 'email_port', 'email_user', 'email_password', 'email_from', 'email_site', 'email_use_tls'
             ]
             
             current_app.logger.info(f"Campos de texto a serem processados: {text_fields}")
@@ -193,6 +195,9 @@ def listar_configuracoes():
                     elif field in ['telefone', 'email', 'endereco']:
                         categoria = 'contato'
                         current_app.logger.info(f"Campo de contato categorizado: {field} -> {categoria}")
+                    elif field.startswith('email_'):
+                        categoria = 'email_config'
+                        current_app.logger.info(f"Campo de email categorizado: {field} -> {categoria}")
                     elif field in ['facebook_url', 'instagram_url', 'whatsapp_url', 'tiktok_url', 'youtube_url', 'linkedin_url']:
                         categoria = 'redes_sociais'
                     elif field.startswith('site_') or field.startswith('rodape_'):

@@ -221,7 +221,7 @@ def create_app():
                 'produtos_subtitulo': 'Escolha a categoria que melhor atende suas necessidades',
                 'checkout_titulo': 'Finalizar Pedido',
                 'checkout_descricao': 'Seus dados serão utilizados para contato via WhatsApp',
-                'checkout_botao_texto': 'Enviar Pedido via WhatsApp',
+                'checkout_botao_texto': 'Confirmar Pedido',
                 'checkout_telefone_obrigatorio': 'Telefone necessário! Precisamos do seu telefone para entrar em contato via WhatsApp.',
                 'pedido_sucesso_titulo': 'Pedido Enviado com Sucesso!',
                 'pedido_sucesso_subtitulo': 'Olá {nome}, seu pedido foi enviado para nosso WhatsApp',
