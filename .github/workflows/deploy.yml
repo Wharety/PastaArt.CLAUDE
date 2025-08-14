@@ -39,10 +39,25 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
-          cd ~/PastaArt.CLAUDE
-          git pull origin main
-          source venv/bin/activate
+          set -e
+          REPO_DIR=~/PastaArt.CLAUDE
+          if [ ! -d "$REPO_DIR/.git" ]; then
+            rm -rf "$REPO_DIR"
+            git clone https://github.com/Wharety/PastaArt.CLAUDE.git "$REPO_DIR"
+          else
+            cd "$REPO_DIR"
+            git fetch --all
+            git reset --hard origin/main
+            git clean -fd
+          fi
+          cd "$REPO_DIR"
+          if [ ! -d "venv" ]; then
+            python3 -m venv venv
+          fi
+          . venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
+          sudo systemctl daemon-reload
           sudo systemctl restart pasta-art
           echo "✅ Deploy completed successfully!"
           
