@@ -964,7 +964,6 @@
     }
     
     .admin-nav {
-        flex-direction: column;
         gap: var(--space-4);
         position: relative;
     }
