@@ -135,10 +135,13 @@ class Doce(db.Model):
     # Novos campos para robustez
     sabores = db.Column(db.Text(length=16383), nullable=True)  # TEXT - Lista de sabores disponíveis
     quantidade_minima = db.Column(db.Integer, default=1)  # Quantidade mínima para venda
-    unidade_venda = db.Column(db.String(20), default='unidade')  # unidade, kg, g, etc.
+    unidade_venda = db.Column(db.String(20), default='unidade')  # unidade, kg, g, kit, etc.
     estoque_disponivel = db.Column(db.Integer, nullable=True)  # Controle de estoque
     destaque = db.Column(db.Boolean, default=False)  # Produto em destaque
+    mais_pedido = db.Column(db.Boolean, default=False, index=True)  # Selo "O mais pedido"
     categoria = db.Column(db.String(50), default='tradicional', index=True)  # tradicional, personalizado
+    # Desconto aplicado para kits (percentual 0-100). Null quando não for kit
+    desconto_percentual = db.Column(db.Numeric(5, 2), nullable=True)
 
     
     def __repr__(self):
@@ -173,6 +176,23 @@ class Doce(db.Model):
         if self.estoque_disponivel is not None and self.estoque_disponivel <= 0:
             return False
         return True
+
+
+class KitItem(db.Model):
+    """Itens que compõem um produto do tipo Kit"""
+    __tablename__ = 'kit_itens'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    kit_id = db.Column(db.Integer, db.ForeignKey('doces.id'), nullable=False, index=True)
+    produto_id = db.Column(db.Integer, db.ForeignKey('doces.id'), nullable=False, index=True)
+    quantidade = db.Column(db.Integer, nullable=False, default=1)
+    
+    # Relações
+    kit = db.relationship('Doce', foreign_keys=[kit_id], backref=db.backref('kit_itens', cascade='all, delete-orphan', lazy=True))
+    produto = db.relationship('Doce', foreign_keys=[produto_id])
+    
+    def __repr__(self):
+        return f'<KitItem kit={self.kit_id} produto={self.produto_id} qtd={self.quantidade}>'
 
 class Admin(db.Model):
     """Modelo para administradores"""

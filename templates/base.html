@@ -7,8 +7,8 @@
     <meta name="theme-color" content="#d4a373">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="{{ config.site_nome or 'Pasta Art Encanto' }}">
-    <title>{% block title %}{{ config.site_nome or 'Pasta Art Encanto' }} - Doces Personalizados{% endblock %}</title>
+    <meta name="apple-mobile-web-app-title" content="{{ config.site_nome or 'PastaArt Encanto' }}">
+    <title>{% block title %}{{ config.site_nome or 'PastaArt Encanto' }} - Doces Personalizados{% endblock %}</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset_url('images/favicon.ico') }}">
@@ -39,7 +39,7 @@
                 <!-- Logo -->
                             <div class="logo">
                 <a href="{{ url_for('loja.index') }}">
-                    <img src="{{ asset_url(config.site_logo or 'images/logo.svg') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="logo-img" width="200" height="50" decoding="async">
+                    <img src="{{ asset_url(config.site_logo or 'images/logo.svg') }}" alt="{{ config.site_nome or 'PastaArt Encanto' }}" class="logo-img" width="200" height="50" decoding="async">
                 </a>
             </div>
                 
@@ -109,7 +109,7 @@
             <!-- Banner - Apenas na página principal -->
         {% if request.endpoint == 'loja.index' %}
         <div class="banner">
-            <img src="{{ asset_url(config.site_banner or 'images/banner.webp') }}" alt="{{ config.site_nome or 'Pasta Art Encanto' }}" class="banner-logo" width="1200" height="200" decoding="async" fetchpriority="high">
+            <img src="{{ asset_url(config.site_banner or 'images/banner.webp') }}" alt="{{ config.site_nome or 'PastaArt Encanto' }}" class="banner-logo" width="1200" height="200" decoding="async" fetchpriority="high">
         </div>
         {% endif %}
 
@@ -142,7 +142,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>{{ config.site_nome or 'Pasta Art Encanto' }}</h3>
+                    <h3>{{ config.site_nome or 'PastaArt Encanto' }}</h3>
                     <p>{{ config.site_descricao or 'Doces personalizados feitos com muito carinho e qualidade para tornar seus momentos ainda mais especiais.' }}</p>
                 </div>
                 
@@ -185,7 +185,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>{{ config.rodape_texto or '© 2024 Pasta Art Encanto. Todos os direitos reservados.' }}</p>
+                <p>{{ config.rodape_texto or '© 2024 PastaArt Encanto. Todos os direitos reservados.' }}</p>
             </div>
         </div>
     </footer>

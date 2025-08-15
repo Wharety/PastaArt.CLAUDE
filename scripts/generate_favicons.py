@@ -123,7 +123,7 @@ def create_ico_file() -> bool:
 
 
 def main() -> None:
-    print("🍫 Pasta Art Encanto - Gerador de Favicons")
+    print("🍫 PastaArt Encanto - Gerador de Favicons")
     print("=" * 50)
 
     # Gera favicons PNG

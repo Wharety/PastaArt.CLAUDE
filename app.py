@@ -147,6 +147,44 @@ def create_app():
     try:
         with app.app_context():
             ensure_usuario_address_columns()
+            # Migração leve para schema de KIT
+            try:
+                engine_name = db.engine.url.get_backend_name()
+            except Exception:
+                engine_name = ''
+            if engine_name in ('mysql', 'mariadb', 'mysql+pymysql'):
+                kit_ddls = [
+                    "ALTER TABLE doces ADD COLUMN IF NOT EXISTS desconto_percentual DECIMAL(5,2) NULL",
+                    "ALTER TABLE doces ADD COLUMN IF NOT EXISTS mais_pedido TINYINT(1) NULL DEFAULT 0",
+                    "CREATE TABLE IF NOT EXISTS kit_itens (\n"
+                    "  id INT AUTO_INCREMENT PRIMARY KEY,\n"
+                    "  kit_id INT NOT NULL,\n"
+                    "  produto_id INT NOT NULL,\n"
+                    "  quantidade INT NOT NULL DEFAULT 1,\n"
+                    "  INDEX (kit_id), INDEX (produto_id),\n"
+                    "  CONSTRAINT fk_kit_itens_kit FOREIGN KEY (kit_id) REFERENCES doces(id) ON DELETE CASCADE,\n"
+                    "  CONSTRAINT fk_kit_itens_prod FOREIGN KEY (produto_id) REFERENCES doces(id)\n"
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ]
+                for ddl in kit_ddls:
+                    try:
+                        db.session.execute(text(ddl))
+                        db.session.commit()
+                    except SQLAlchemyError as e:
+                        msg = str(e).lower()
+                        if 'if not exists' in msg or 'syntax' in msg:
+                            try:
+                                fallback = ddl.replace(' IF NOT EXISTS', '')
+                                db.session.execute(text(fallback))
+                                db.session.commit()
+                            except SQLAlchemyError:
+                                db.session.rollback()
+                                continue
+                        else:
+                            db.session.rollback()
+                            if 'duplicate' in msg or 'exists' in msg:
+                                continue
+                            raise
     except Exception as e:
         debug_log(f"Falha ao aplicar migração leve de endereço: {e}", "WARNING")
 
@@ -193,7 +231,7 @@ def create_app():
         except Exception:
             # Se não conseguir buscar, usar valores padrão
             configs = {
-                'site_nome': 'Pasta Art Encanto',
+                'site_nome': 'PastaArt Encanto',
                 'site_descricao': 'Doces artesanais feitos com muito carinho',
                 'telefone': '(11) 99999-9999',
                 'email': 'contato@pastaart.com.br',
@@ -205,7 +243,7 @@ def create_app():
                 'tiktok_url': '',
                 'youtube_url': '',
                 'linkedin_url': '',
-                'rodape_texto': '© 2025 Pasta Art Encanto. Todos os direitos reservados.',
+                'rodape_texto': '© 2025 PastaArt Encanto. Todos os direitos reservados.',
                 'site_logo': 'images/logo.svg',
                 'site_banner': 'images/banner.webp',
                 'card_tradicional_image': 'images/doces_tradicionais.png',
@@ -214,7 +252,7 @@ def create_app():
                 'tradicional_description': 'Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados.',
                 'personalizado_title': 'Doces Personalizados',
                 'personalizado_description': 'Doces únicos e personalizados para seus eventos especiais.',
-                'about_title': 'Sobre a Pasta Art Encanto',
+                'about_title': 'Sobre a PastaArt Encanto',
                 'about_description': 'Somos especialistas em criar doces únicos e personalizados que transformam seus momentos especiais em memórias inesquecíveis.',
 
                 'produtos_titulo': 'Nossos Doces',
@@ -335,7 +373,7 @@ app = create_app()
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("🍰 PASTA ART ENCANTO - Iniciando Aplicação")
+    print("🍰 PASTAART ENCANTO - Iniciando Aplicação")
     print("=" * 60)
     
     # Inicializar banco

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ doce.nome }} - Pasta Art Encanto{% endblock %}
+{% block title %}{{ doce.nome }} - PastaArt Encanto{% endblock %}
 
 {% block content %}
 <section class="product-details">
@@ -29,12 +29,46 @@
                 <div class="product-detail-price">
                     <span class="price-label">Preço:</span>
                     <span class="price-value">R$ {{ "%.2f"|format(doce.preco) }}</span>
+                    {% if doce.unidade_venda == 'kit' and doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}
+                        {% set preco_cheio = (doce.preco / (1 - (doce.desconto_percentual / 100))) %}
+                        <span class="card-price-old" style="margin-left:.5rem;">R$ {{ '%.2f'|format(preco_cheio) }}</span>
+                    {% endif %}
+                    <div class="price-badges">
+                        {% if doce.unidade_venda == 'kit' and doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}
+                        <span class="badge badge-discount badge-sm"><i class="fas fa-tag"></i> {{ '%.0f'|format(doce.desconto_percentual) }}% OFF</span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="product-detail-description">
                     <h3>Descrição</h3>
                     <p>{{ doce.descricao }}</p>
                 </div>
+
+                {% if doce.unidade_venda == 'kit' and doce.kit_itens %}
+                <div class="product-kit-section">
+                    <h3>Itens que compõem este Kit</h3>
+                    <ul class="kit-items-list elegant">
+                        {% for item in doce.kit_itens %}
+                            {% set subtotal = (item.quantidade * item.produto.preco) %}
+                            <li class="kit-item">
+                                <div class="kit-thumb">
+                                    {% if item.produto.imagem_url %}
+                                        <img src="{{ asset_url(item.produto.imagem_url) }}" alt="{{ item.produto.nome }}" loading="lazy">
+                                    {% else %}
+                                        <div class="kit-thumb-placeholder"><i class="fas fa-birthday-cake"></i></div>
+                                    {% endif %}
+                                </div>
+                                <div class="kit-info">
+                                    <div class="kit-name">{{ item.produto.nome }}</div>
+                                    <div class="kit-meta">x{{ item.quantidade }} • R$ {{ '%.2f'|format(subtotal) }}</div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <small class="kit-note">Itens exibidos são fixos deste kit. As quantidades não podem ser alteradas.</small>
+                </div>
+                {% endif %}
 
                 <!-- Novas Informações do Produto -->
                 {% if doce.sabores %}

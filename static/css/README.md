@@ -1,8 +1,8 @@
-# Sistema de Design CSS - Pasta Art Encanto
+# Sistema de Design CSS - PastaArt Encanto
 
 ## Visão Geral
 
-Este sistema de design foi criado para centralizar e organizar os estilos do projeto Pasta Art Encanto, tornando a manutenção mais simples e eficiente.
+Este sistema de design foi criado para centralizar e organizar os estilos do projeto PastaArt Encanto, tornando a manutenção mais simples e eficiente.
 
 ## Estrutura de Arquivos
 

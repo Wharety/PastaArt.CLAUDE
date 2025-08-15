@@ -1,8 +1,8 @@
-# Sistema de Favicons - Pasta Art Encanto
+# Sistema de Favicons - PastaArt Encanto
 
 ## Visão Geral
 
-Este diretório contém todos os ícones e favicons do projeto Pasta Art Encanto, seguindo o tema de chocolate e cores da marca.
+Este diretório contém todos os ícones e favicons do projeto PastaArt Encanto, seguindo o tema de chocolate e cores da marca.
 
 ## Arquivos de Favicon
 
@@ -61,8 +61,8 @@ O arquivo `site.webmanifest` configura o comportamento como PWA:
 
 ```json
 {
-    "name": "Pasta Art Encanto",
-    "short_name": "Pasta Art",
+    "name": "PastaArt Encanto",
+    "short_name": "PastaArt",
     "description": "Doces artesanais de chocolate feitos com muito carinho",
     "theme_color": "#d4a373",
     "background_color": "#fff8f5"

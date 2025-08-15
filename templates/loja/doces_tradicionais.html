@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Doces Tradicionais - Pasta Art Encanto{% endblock %}
+{% block title %}Doces Tradicionais - PastaArt Encanto{% endblock %}
 
 {% block content %}
 <div class="category-page">
@@ -41,9 +41,17 @@
                         </a>
                     </div>
                 </div>    
+                {% if doce.mais_pedido %}
+                    <span class="badge badge-popular badge-sm"><i class="fas fa-fire"></i> O mais pedido</span>
+                {% endif %}
+                <div class="card-price-row">               
+                    {% if doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}
+                        <span class="badge badge-discount badge-sm"><i class="fas fa-tag"></i> {{ '%.0f'|format(doce.desconto_percentual) }}% OFF</span>
+                    {% endif %}
+                </div>
                 <div class="product-info">
                     <h3 class="product-name">{{ doce.nome }}</h3>
-                    <p class="product-description">{{ doce.descricao[:80] }}{% if doce.descricao|length > 80 %}...{% endif %}</p>
+                    <p class="product-description">{{ doce.descricao[:80] }}{% if doce.descricao|length > 80 %}...{% endif %}</p>             
                 </div>
             </div>
             {% endfor %}

@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired
-from models import Admin, Doce, Pedido, db
+from models import Admin, Doce, Pedido, db, KitItem
 import os
 from PIL import Image
 from datetime import datetime, date, timedelta
@@ -132,6 +132,7 @@ def novo_doce():
         unidade_venda = request.form.get('unidade_venda', 'unidade')
         estoque_disponivel = request.form.get('estoque_disponivel', type=int)
         destaque = bool(request.form.get('destaque'))
+        mais_pedido = bool(request.form.get('mais_pedido'))
 
         
         # Upload da imagem
@@ -150,10 +151,12 @@ def novo_doce():
                 resize_image(file_path)
                 imagem_url = f'uploads/{filename}'
         
+        # Se for kit, ignorar preço informado e calcular com base nos itens
+        desconto_percentual = request.form.get('desconto_percentual', type=float)
         doce = Doce(
             nome=nome,
             descricao=descricao,
-            preco=preco,
+            preco=preco or 0,
             imagem_url=imagem_url,
             ativo=ativo,
             categoria=categoria,
@@ -162,15 +165,46 @@ def novo_doce():
             unidade_venda=unidade_venda,
             estoque_disponivel=estoque_disponivel,
             destaque=destaque,
+            mais_pedido=mais_pedido,
+            desconto_percentual=desconto_percentual if unidade_venda == 'kit' else None,
         )
         
         db.session.add(doce)
+        db.session.flush()
+
+        # Processar itens do kit
+        if unidade_venda == 'kit':
+            produto_ids = request.form.getlist('kit_produto_id[]')
+            quantidades = request.form.getlist('kit_quantidade[]')
+            total_bruto = 0.0
+            for i, prod_id in enumerate(produto_ids):
+                try:
+                    prod_id_int = int(prod_id)
+                    qtd_int = int(quantidades[i]) if i < len(quantidades) else 1
+                except Exception:
+                    continue
+                if qtd_int <= 0:
+                    continue
+                # Buscar produto e impedir kit-dentro-de-kit
+                produto = Doce.query.get(prod_id_int)
+                if not produto or produto.unidade_venda == 'kit':
+                    continue
+                db.session.add(KitItem(kit_id=doce.id, produto_id=produto.id, quantidade=qtd_int))
+                total_bruto += float(produto.preco) * qtd_int
+            # Aplicar desconto
+            total_final = total_bruto
+            if desconto_percentual is not None and desconto_percentual >= 0:
+                total_final = total_bruto * (1 - (float(desconto_percentual) / 100.0))
+            doce.preco = round(total_final, 2)
+        
         db.session.commit()
         
         flash('Doce criado com sucesso!', 'success')
         return redirect(url_for('admin.listar_doces'))
     
-    return render_template('admin/form_doce.html', doce=None)
+    # Produtos disponíveis para compor kits (excluir kits)
+    produtos_disponiveis = Doce.query.filter(Doce.ativo == True, Doce.unidade_venda != 'kit').order_by(Doce.nome.asc()).all()
+    return render_template('admin/form_doce.html', doce=None, produtos_disponiveis=produtos_disponiveis)
 
 @admin_bp.route('/doces/<int:doce_id>/editar', methods=['GET', 'POST'])
 @login_required
@@ -181,7 +215,7 @@ def editar_doce(doce_id):
     if request.method == 'POST':
         doce.nome = request.form.get('nome')
         doce.descricao = request.form.get('descricao')
-        doce.preco = request.form.get('preco', type=float)
+        preco_informado = request.form.get('preco', type=float)
         doce.ativo = bool(request.form.get('ativo'))
         
         # Novos campos
@@ -191,8 +225,40 @@ def editar_doce(doce_id):
         doce.unidade_venda = request.form.get('unidade_venda', 'unidade')
         doce.estoque_disponivel = request.form.get('estoque_disponivel', type=int)
         doce.destaque = bool(request.form.get('destaque'))
+        doce.mais_pedido = bool(request.form.get('mais_pedido'))
 
-        
+        # Se for kit, recalcular preço e itens
+        if doce.unidade_venda == 'kit':
+            desconto_percentual = request.form.get('desconto_percentual', type=float)
+            doce.desconto_percentual = desconto_percentual if desconto_percentual is not None else None
+            # Limpar itens anteriores
+            KitItem.query.filter_by(kit_id=doce.id).delete()
+            produto_ids = request.form.getlist('kit_produto_id[]')
+            quantidades = request.form.getlist('kit_quantidade[]')
+            total_bruto = 0.0
+            for i, prod_id in enumerate(produto_ids):
+                try:
+                    prod_id_int = int(prod_id)
+                    qtd_int = int(quantidades[i]) if i < len(quantidades) else 1
+                except Exception:
+                    continue
+                if qtd_int <= 0:
+                    continue
+                produto = Doce.query.get(prod_id_int)
+                if not produto or produto.unidade_venda == 'kit':
+                    continue
+                db.session.add(KitItem(kit_id=doce.id, produto_id=produto.id, quantidade=qtd_int))
+                total_bruto += float(produto.preco) * qtd_int
+            total_final = total_bruto
+            if desconto_percentual is not None and desconto_percentual >= 0:
+                total_final = total_bruto * (1 - (float(desconto_percentual) / 100.0))
+            doce.preco = round(total_final, 2)
+        else:
+            # Se não é kit, garantir remoção de itens e desconto
+            KitItem.query.filter_by(kit_id=doce.id).delete()
+            doce.desconto_percentual = None
+            doce.preco = preco_informado
+
         # Upload de nova imagem
         if 'imagem' in request.files:
             file = request.files['imagem']
@@ -217,7 +283,8 @@ def editar_doce(doce_id):
         flash('Doce atualizado com sucesso!', 'success')
         return redirect(url_for('admin.listar_doces'))
     
-    return render_template('admin/form_doce.html', doce=doce)
+    produtos_disponiveis = Doce.query.filter(Doce.ativo == True, Doce.unidade_venda != 'kit', Doce.id != doce.id).order_by(Doce.nome.asc()).all()
+    return render_template('admin/form_doce.html', doce=doce, produtos_disponiveis=produtos_disponiveis)
 
 @admin_bp.route('/doces/<int:doce_id>/excluir', methods=['POST'])
 @login_required

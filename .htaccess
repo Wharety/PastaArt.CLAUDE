@@ -1,4 +1,4 @@
-# PASTA ART ENCANTO - Configuração Apache para LocalWeb
+# PASTAART ENCANTO - Configuração Apache para LocalWeb
 # Este arquivo configura o Apache para servir a aplicação Flask
 
 # Habilitar mod_rewrite

@@ -66,16 +66,15 @@
                             <input type="number" 
                                    id="preco" 
                                    name="preco" 
-                                   required 
+                                   
                                    step="0.01" 
                                    min="0"
                                    class="form-control"
                                    value="{{ doce.preco if doce else '' }}"
+                                   {% if doce and doce.unidade_venda == 'kit' %}readonly{% endif %}
                                    placeholder="0,00">
                         </div>
                     </div>
-
-
                 </div>
 
                 <div class="form-row">
@@ -102,6 +101,48 @@
                             <option value="bandeja" {% if doce and doce.unidade_venda == 'bandeja' %}selected{% endif %}>Bandeja</option>
                             <option value="kit" {% if doce and doce.unidade_venda == 'kit' %}selected{% endif %}>Kit</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Seção de montagem do kit -->
+                <div id="kit-builder" class="form-section" {% if not (doce and doce.unidade_venda == 'kit') %}hidden{% endif %} style="margin-top: 1rem;">
+                    <h3 class="form-section-title"><i class="fas fa-boxes"></i> Itens do Kit</h3>
+                    <div class="form-group">
+                        <label class="form-label">Desconto (%)</label>
+                        <input type="number" step="0.01" min="0" max="100" name="desconto_percentual" class="form-control" value="{{ ('%.2f'|format(doce.desconto_percentual)) if doce and doce.desconto_percentual is not none else '' }}" placeholder="Ex.: 10 para 10%">
+                        <small class="form-hint">Aplicado sobre a soma dos produtos do kit</small>
+                    </div>
+                    <div id="kit-items">
+                        {% set itens = doce.kit_itens if doce and doce.unidade_venda == 'kit' else [] %}
+                        {% if itens %}
+                            {% for item in itens %}
+                            <div class="kit-item-row" style="display:flex; gap: .5rem; margin-bottom: .5rem; align-items: center;">
+                                <select name="kit_produto_id[]" class="form-control kit-produto-select" style="flex:1;">
+                                    {% for p in produtos_disponiveis %}
+                                        <option value="{{ p.id }}" data-preco="{{ '%.2f'|format(p.preco) }}" {% if p.id == item.produto_id %}selected{% endif %}>{{ p.nome }} (R$ {{ '%.2f'|format(p.preco) }})</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:120px;" min="1" value="{{ item.quantidade }}">
+                                <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="kit-item-row" style="display:flex; gap: .5rem; margin-bottom: .5rem; align-items: center;">
+                                <select name="kit_produto_id[]" class="form-control kit-produto-select" style="flex:1;">
+                                    {% for p in produtos_disponiveis %}
+                                        <option value="{{ p.id }}" data-preco="{{ '%.2f'|format(p.preco) }}">{{ p.nome }} (R$ {{ '%.2f'|format(p.preco) }})</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:120px;" min="1" value="1">
+                                <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-outline" onclick="addKitRow()"><i class="fas fa-plus"></i> Adicionar Item</button>
+                    </div>
+                    <div class="form-group">
+                        <small class="form-hint">O preço do kit será calculado automaticamente com base nos itens e desconto.</small>
                     </div>
                 </div>
 
@@ -148,6 +189,15 @@
                                        {% if doce and doce.destaque %}checked{% endif %}>
                                 <span class="checkmark"></span>
                                 Destacar na loja
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" 
+                                       id="mais_pedido" 
+                                       name="mais_pedido" 
+                                       value="1"
+                                       {% if doce and doce.mais_pedido %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                O mais pedido
                             </label>
                         </div>
                         <small class="form-hint">Produtos em destaque aparecem primeiro</small>
@@ -359,7 +409,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (precoField) precoField.addEventListener('input', updateProductPreview);
     if (categoriaField) categoriaField.addEventListener('change', updateProductPreview);
     if (quantidadeField) quantidadeField.addEventListener('input', updateProductPreview);
-    if (unidadeField) unidadeField.addEventListener('change', updateProductPreview);
+    if (unidadeField) {
+        unidadeField.addEventListener('change', function() {
+            updateProductPreview();
+            const builder = document.getElementById('kit-builder');
+            const precoField = document.getElementById('preco');
+            if (this.value === 'kit') {
+                if (builder) builder.style.display = 'block';
+                if (precoField) precoField.setAttribute('readonly', 'readonly');
+                calcularPrecoKit();
+            } else {
+                if (builder) builder.style.display = 'none';
+                if (precoField) precoField.removeAttribute('readonly');
+            }
+        });
+    }
     
     // Event listener para sabores (se existir)
     const saboresField = document.getElementById('sabores');
@@ -379,14 +443,15 @@ document.querySelector('.product-form').addEventListener('submit', function(e) {
     const nome = document.getElementById('nome').value.trim();
     const descricao = document.getElementById('descricao').value.trim();
     const preco = document.getElementById('preco').value;
+    const unidade = document.getElementById('unidade_venda').value;
     
-    if (!nome || !descricao || !preco) {
+    if (!nome || !descricao || (!preco && unidade !== 'kit')) {
         e.preventDefault();
         showAlert('Por favor, preencha todos os campos obrigatórios.', 'Campos Obrigatórios', 'fas fa-exclamation-triangle');
         return;
     }
     
-    if (parseFloat(preco) <= 0) {
+    if (unidade !== 'kit' && parseFloat(preco) <= 0) {
         e.preventDefault();
         showAlert('O preço deve ser maior que zero.', 'Preço Inválido', 'fas fa-exclamation-triangle');
         return;
@@ -421,7 +486,7 @@ descricaoField.addEventListener('input', function() {
     counter.style.color = remaining < 50 ? '#e74c3c' : '#6c757d';
 });
 
-// Formatar preço enquanto digita
+// Formatar preço enquanto digita (não afeta kit)
 document.getElementById('preco').addEventListener('input', function() {
     let value = this.value;
     if (value && !isNaN(value)) {
@@ -434,5 +499,74 @@ document.getElementById('preco').addEventListener('input', function() {
         }
     }
 });
+
+// Cálculo do preço do kit no front-end
+function calcularPrecoKit() {
+    const unidade = document.getElementById('unidade_venda')?.value;
+    if (unidade !== 'kit') return;
+    const selects = document.querySelectorAll('#kit-items .kit-produto-select');
+    const qtys = document.querySelectorAll('#kit-items .kit-qty-input');
+    let totalBruto = 0;
+    selects.forEach((sel, i) => {
+        const opt = sel.options[sel.selectedIndex];
+        const preco = parseFloat(opt?.dataset?.preco || '0');
+        const qtd = parseInt(qtys[i]?.value || '1');
+        if (!isNaN(preco) && !isNaN(qtd) && qtd > 0) {
+            totalBruto += preco * qtd;
+        }
+    });
+    const descontoInput = document.querySelector('input[name="desconto_percentual"]');
+    const desconto = parseFloat(descontoInput?.value || '0');
+    let totalFinal = totalBruto;
+    if (!isNaN(desconto) && desconto > 0) {
+        totalFinal = totalBruto * (1 - (desconto / 100.0));
+    }
+    const precoField = document.getElementById('preco');
+    if (precoField) {
+        precoField.value = (Math.round(totalFinal * 100) / 100).toFixed(2);
+    }
+}
+
+// Observers para recalcular preço do kit
+document.addEventListener('input', function(e) {
+    if (e.target.matches('#kit-items .kit-qty-input') || e.target.matches('input[name="desconto_percentual"]')) {
+        calcularPrecoKit();
+    }
+});
+
+document.addEventListener('change', function(e) {
+    if (e.target.matches('#kit-items .kit-produto-select')) {
+        calcularPrecoKit();
+    }
+});
+</script>
+<script>
+function addKitRow() {
+    const container = document.getElementById('kit-items');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'kit-item-row';
+    row.style.display = 'flex';
+    row.style.gap = '.5rem';
+    row.style.marginBottom = '.5rem';
+    row.style.alignItems = 'center';
+    row.innerHTML = `
+        <select name="kit_produto_id[]" class="form-control kit-produto-select" style="flex:1;">
+            ${Array.from(document.querySelectorAll('#kit-items select:first-child option')).map(o => `<option value="${o.value}" data-preco="${o.dataset?.preco || ''}">${o.textContent}</option>`).join('')}
+        </select>
+        <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:120px;" min="1" value="1">
+        <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
+    `;
+    container.appendChild(row);
+    calcularPrecoKit();
+}
+
+function removeKitRow(btn) {
+    const row = btn.closest('.kit-item-row');
+    if (row && row.parentNode.children.length > 1) {
+        row.remove();
+    }
+    calcularPrecoKit();
+}
 </script>
 {% endblock %}

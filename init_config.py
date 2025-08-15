@@ -14,7 +14,7 @@ def init_configuracoes():
         # Configurações Básicas do Site
         {
             'chave': 'site_nome',
-            'valor': 'Pasta Art Encanto',
+            'valor': 'PastaArt Encanto',
             'descricao': 'Nome do site',
             'tipo': 'texto',
             'categoria': 'site_basico'
@@ -28,7 +28,7 @@ def init_configuracoes():
         },
         {
             'chave': 'rodape_texto',
-            'valor': '© 2024 Pasta Art Encanto. Todos os direitos reservados.',
+            'valor': '© 2024 PastaArt Encanto. Todos os direitos reservados.',
             'descricao': 'Texto do rodapé',
             'tipo': 'texto',
             'categoria': 'site_basico'
@@ -233,7 +233,7 @@ def init_configuracoes():
         # Configurações do About Content
         {
             'chave': 'about_title',
-            'valor': 'Sobre a Pasta Art Encanto',
+            'valor': 'Sobre a PastaArt Encanto',
             'descricao': 'Título da seção sobre nós',
             'tipo': 'texto',
             'categoria': 'about_content'

@@ -1,4 +1,4 @@
-# PASTA ART ENCANTO - Dependências Python
+# PASTAART ENCANTO - Dependências Python
 # Flask e extensões principais
 Flask>=3.0.0
 Flask-SQLAlchemy>=3.1.1

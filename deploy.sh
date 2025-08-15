@@ -5,7 +5,7 @@
 
 set -e  # Para em caso de erro
 
-echo "🚀 Iniciando deploy da Pasta Art Encanto..."
+echo "🚀 Iniciando deploy da PastaArt Encanto..."
 
 # Configurações
 PROJECT_DIR="/home/pasta_art/PastaArt.CLAUDE"

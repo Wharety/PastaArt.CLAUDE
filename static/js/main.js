@@ -1,5 +1,5 @@
 /**
- * PASTA ART ENCANTO - JavaScript Principal
+ * PASTAART ENCANTO - JavaScript Principal
  * Funcionalidades para a loja virtual
  */
 
@@ -20,7 +20,7 @@ function initializeApp() {
     initFlashMessages();
     initProductInteractions();
     
-    console.log('🍰 Pasta Art Encanto - Aplicação inicializada');
+    console.log('🍰 PastaArt Encanto - Aplicação inicializada');
 }
 
 /**

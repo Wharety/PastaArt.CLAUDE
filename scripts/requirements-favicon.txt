@@ -1,5 +1,5 @@
 # Dependências para geração de favicons
-# Pasta Art Encanto
+# PastaArt Encanto
 
 # Conversão SVG para PNG
 cairosvg>=2.7.0

@@ -1,5 +1,5 @@
 [Unit]
-Description=Pasta Art Encanto Flask App
+Description=PastaArt Encanto Flask App
 After=network.target
 
 [Service]

@@ -1,5 +1,5 @@
 /**
- * PASTA ART ENCANTO - JavaScript Administrativo
+ * PASTAART ENCANTO - JavaScript Administrativo
  * Funcionalidades específicas para o painel admin
  */
 

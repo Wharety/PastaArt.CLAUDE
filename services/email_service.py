@@ -44,7 +44,7 @@ def _generate_items_html(pedido) -> str:
 
 
 def _generate_vendor_whatsapp_message(pedido) -> str:
-    message = f"🎉 *Pasta Art Encanto* - Pedido #{pedido.numero_pedido}\n\n"
+    message = f"🎉 *PastaArt Encanto* - Pedido #{pedido.numero_pedido}\n\n"
     message += f"Olá {pedido.usuario.nome}! 😊\n\n"
     message += "Recebemos seu pedido com sucesso!\n\n"
     message += "📋 *Resumo do pedido:*\n"
@@ -63,7 +63,7 @@ def _build_client_email_html(pedido) -> str:
     <html>
     <head>
         <meta charset=\"UTF-8\">
-        <title>Pedido Confirmado - Pasta Art Encanto</title>
+        <title>Pedido Confirmado - PastaArt Encanto</title>
         <style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
             .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
@@ -76,7 +76,7 @@ def _build_client_email_html(pedido) -> str:
     <body>
         <div class=\"container\">
             <div class=\"header\">
-                <h1>🍰 Pasta Art Encanto</h1>
+                <h1>🍰 PastaArt Encanto</h1>
                 <h2>Pedido #{pedido.numero_pedido} Confirmado!</h2>
             </div>
             <div class=\"content\">
@@ -93,7 +93,7 @@ def _build_client_email_html(pedido) -> str:
                 <p>Entraremos em contato por WhatsApp para acertar os detalhes.</p>
             </div>
             <div class=\"footer\">
-                <p>Pasta Art Encanto - Doces Artesanais</p>
+                <p>PastaArt Encanto - Doces Artesanais</p>
             </div>
         </div>
     </body>
@@ -113,7 +113,7 @@ def _build_vendor_email_html(pedido) -> str:
     <html>
     <head>
         <meta charset=\"UTF-8\">
-        <title>Novo Pedido #{pedido.numero_pedido} - Pasta Art Encanto</title>
+        <title>Novo Pedido #{pedido.numero_pedido} - PastaArt Encanto</title>
         <style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
             .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
@@ -128,7 +128,7 @@ def _build_vendor_email_html(pedido) -> str:
     <body>
         <div class=\"container\">
             <div class=\"header\">
-                <h1>🍰 Pasta Art Encanto</h1>
+                <h1>🍰 PastaArt Encanto</h1>
                 <h2>Novo Pedido #{pedido.numero_pedido}</h2>
             </div>
             <div class=\"content\">
@@ -151,7 +151,7 @@ def _build_vendor_email_html(pedido) -> str:
                 <p><strong>Dica:</strong> Use o botão acima para enviar a confirmação ao cliente.</p>
             </div>
             <div class=\"footer\">
-                <p>Pasta Art Encanto - Painel Administrativo</p>
+                <p>PastaArt Encanto - Painel Administrativo</p>
             </div>
         </div>
     </body>
@@ -200,13 +200,13 @@ def send_order_emails(pedido) -> bool:
 
     client_ok = _send_email(
         destinatario=pedido.usuario.email,
-        assunto=f"Pedido #{pedido.numero_pedido} Confirmado - Pasta Art Encanto",
+        assunto=f"Pedido #{pedido.numero_pedido} Confirmado - PastaArt Encanto",
         html_content=_build_client_email_html(pedido)
     ) if pedido.usuario and pedido.usuario.email else False
 
     vendor_ok = _send_email(
         destinatario=vendor_email,
-        assunto=f"Novo Pedido #{pedido.numero_pedido} - Pasta Art Encanto",
+        assunto=f"Novo Pedido #{pedido.numero_pedido} - PastaArt Encanto",
         html_content=_build_vendor_email_html(pedido)
     )
 
