@@ -112,13 +112,13 @@
                     <h3>Resumo do Pedido</h3>
                     
                     <div class="order-items">
-                        {% for doce_id, item in cart.items() %}
+                        {% for cart_key, item in cart.items() %}
                         <div class="order-item">
                             <div class="item-info">
                                 <span class="item-name">{{ item.nome }}</span>
                                 <span class="item-details">{{ item.quantidade }}x R$ {{ "%.2f"|format(item.preco|float) }}</span>
                             </div>
-                            <span class="item-total">R$ {{ "%.2f"|format((item.preco|float) * (item.quantidade|int)) }}</span>
+                            <span class="item-total">R$ {{ "%.2f"|format((cart_info.get(cart_key).item_total_liquido if cart_info and cart_info.get(cart_key) else (item.preco|float) * (item.quantidade|int))) }}</span>
                         </div>
                         {% endfor %}
                     </div>
@@ -127,8 +127,14 @@
 
                     <div class="summary-line">
                         <span>Subtotal:</span>
-                        <span>R$ {{ "%.2f"|format(total|float) }}</span>
+                        <span>R$ {{ "%.2f"|format(subtotal|float) }}</span>
                     </div>
+                    {% if total_desconto and total_desconto > 0 %}
+                    <div class="summary-line">
+                        <span>Você economizou:</span>
+                        <span>- R$ {{ "%.2f"|format(total_desconto|float) }}</span>
+                    </div>
+                    {% endif %}
                     
                     <div class="summary-line">
                         <span>Entrega:</span>

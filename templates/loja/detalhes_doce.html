@@ -31,7 +31,7 @@
                     <span class="price-value">R$ {{ "%.2f"|format(doce.preco) }}</span>
                     {% if doce.unidade_venda == 'kit' and doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}
                         {% set preco_cheio = (doce.preco / (1 - (doce.desconto_percentual / 100))) %}
-                        <span class="card-price-old" style="margin-left:.5rem;">R$ {{ '%.2f'|format(preco_cheio) }}</span>
+                        <span class="card-price-old">R$ {{ '%.2f'|format(preco_cheio) }}</span>
                     {% endif %}
                     <div class="price-badges">
                         {% if doce.unidade_venda == 'kit' and doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}

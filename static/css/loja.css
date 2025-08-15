@@ -23,7 +23,7 @@
 /* Cards de produto - precificação */
 .card-price-row { display: flex; align-items: center; gap: .5rem; margin-top: .35rem; flex-wrap: wrap; position: absolute; right: 0; top: 0;}
 .card-price { font-weight: 700; color: #3f372f; font-size: 1.05rem; }
-.card-price-old { color: #9e9083; text-decoration: line-through; font-size: .9rem; opacity: .75; }
+.card-price-old { color: #9e9083; text-decoration: line-through; font-size: .9rem; opacity: .75; margin-left: .5rem; }
 /* ================================
    PASTAART ENCANTO - LOJA
    Estilos Específicos da Loja
@@ -1134,6 +1134,10 @@
         gap: var(--space-8);
     }
     
+    .price-value {
+        font-size: var(--text-xl);
+    }
+    
     .about-content {
         grid-template-columns: 1fr;
         gap: var(--space-8);
@@ -1193,6 +1197,10 @@
     
     .btn-large {
         padding: var(--space-3) var(--space-6);
+    }
+    
+    .price-value {
+        font-size: var(--text-lg);
     }
     
     .products-grid {

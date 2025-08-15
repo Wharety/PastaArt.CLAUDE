@@ -105,7 +105,7 @@
                 </div>
 
                 <!-- Seção de montagem do kit -->
-                <div id="kit-builder" class="form-section" {% if not (doce and doce.unidade_venda == 'kit') %}hidden{% endif %} style="margin-top: 1rem;">
+                <div id="kit-builder" class="form-section" {% if not (doce and doce.unidade_venda == 'kit') %}hidden{% endif %}>
                     <h3 class="form-section-title"><i class="fas fa-boxes"></i> Itens do Kit</h3>
                     <div class="form-group">
                         <label class="form-label">Desconto (%)</label>
@@ -116,24 +116,24 @@
                         {% set itens = doce.kit_itens if doce and doce.unidade_venda == 'kit' else [] %}
                         {% if itens %}
                             {% for item in itens %}
-                            <div class="kit-item-row" style="display:flex; gap: .5rem; margin-bottom: .5rem; align-items: center;">
-                                <select name="kit_produto_id[]" class="form-control kit-produto-select" style="flex:1;">
+                            <div class="kit-item-row">
+                                <select name="kit_produto_id[]" class="form-control kit-produto-select">
                                     {% for p in produtos_disponiveis %}
                                         <option value="{{ p.id }}" data-preco="{{ '%.2f'|format(p.preco) }}" {% if p.id == item.produto_id %}selected{% endif %}>{{ p.nome }} (R$ {{ '%.2f'|format(p.preco) }})</option>
                                     {% endfor %}
                                 </select>
-                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:60px;" min="1" value="{{ item.quantidade }}">
+                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" min="1" value="{{ item.quantidade }}">
                                 <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
                             </div>
                             {% endfor %}
                         {% else %}
-                            <div class="kit-item-row" style="display:flex; gap: .5rem; margin-bottom: .5rem; align-items: center;">
-                                <select name="kit_produto_id[]" class="form-control kit-produto-select" style="flex:1;">
+                            <div class="kit-item-row">
+                                <select name="kit_produto_id[]" class="form-control kit-produto-select">
                                     {% for p in produtos_disponiveis %}
                                         <option value="{{ p.id }}" data-preco="{{ '%.2f'|format(p.preco) }}">{{ p.nome }} (R$ {{ '%.2f'|format(p.preco) }})</option>
                                     {% endfor %}
                                 </select>
-                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:60px;" min="1" value="1">
+                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" min="1" value="1">
                                 <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
                             </div>
                         {% endif %}

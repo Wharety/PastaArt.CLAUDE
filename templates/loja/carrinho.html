@@ -67,7 +67,7 @@
                     </div>
 
                     <div class="item-total" id="item_total_{{ cart_key }}">
-                        <strong>R$ {{ "%.2f"|format((item.preco|float) * (item.quantidade|int)) }}</strong>
+                        <strong>R$ {{ "%.2f"|format((cart_info.get(cart_key).item_total_liquido if cart_info and cart_info.get(cart_key) else (item.preco|float) * (item.quantidade|int))) }}</strong>
                     </div>
 
                     <div class="item-actions">
@@ -86,8 +86,15 @@
                     
                     <div class="summary-line">
                         <span>Subtotal:</span>
-                        <span id="cart_subtotal">R$ {{ "%.2f"|format(total|float) }}</span>
+                        <span id="cart_subtotal">R$ {{ "%.2f"|format(subtotal|float) }}</span>
                     </div>
+
+                    {% if total_desconto and total_desconto > 0 %}
+                    <div class="summary-line discount-line">
+                        <span>Você economizou:</span>
+                        <span id="cart_discount">- R$ {{ "%.2f"|format(total_desconto|float) }}</span>
+                    </div>
+                    {% endif %}
                     
                     <div class="summary-line">
                         <span>Entrega:</span>
@@ -215,7 +222,16 @@ function updateQuantityAjax(cartKey, change) {
             }
             
             // Atualizar totais do carrinho
-            document.getElementById('cart_subtotal').textContent = 'R$ ' + data.cart_total;
+            if (data.cart_subtotal) {
+                document.getElementById('cart_subtotal').textContent = 'R$ ' + data.cart_subtotal;
+            }
+            if (document.getElementById('cart_discount')) {
+                document.getElementById('cart_discount').textContent = '- R$ ' + (data.cart_discount || '0.00');
+            } else if (data.cart_discount && parseFloat(data.cart_discount) > 0) {
+                // Se a linha de desconto não existe mas há desconto, recarrega para renderizar
+                location.reload();
+                return;
+            }
             document.getElementById('cart_total').textContent = 'R$ ' + data.cart_total;
             
             // Atualizar badge do carrinho no header

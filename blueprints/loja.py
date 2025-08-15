@@ -21,6 +21,53 @@ def debug_log(message, level="INFO"):
 
 loja_bp = Blueprint('loja', __name__)
 
+def calcular_totais_carrinho(cart):
+    """Calcular totais sem aplicar desconto novamente.
+    Considera que item['preco'] já pode estar com desconto aplicado.
+    Retorna (subtotal_liquido, total_desconto_exibicao, total_final, cart_items_info), onde:
+      - subtotal_liquido = soma de (preco_liquido * qtd)
+      - total_desconto_exibicao = economia estimada com base no preço cheio
+      - total_final = igual ao subtotal_liquido (não desconta novamente)
+      - cart_items_info[cart_key]:
+          - desconto_percentual
+          - preco_liquido (unitário)
+          - preco_cheio (unitário, estimado quando há desconto_percentual)
+          - item_total_liquido
+          - item_total_cheio
+          - item_economia
+    """
+    from models import Doce
+    subtotal_liquido = 0.0
+    total_desconto_exibicao = 0.0
+    cart_items_info = {}
+    for cart_key, item in cart.items():
+        preco_liquido = float(item.get('preco', 0))
+        quantidade = int(item.get('quantidade', 0))
+        doce = Doce.query.get(item.get('id')) if item.get('id') is not None else None
+        desconto_percentual = float(doce.desconto_percentual) if (doce and doce.desconto_percentual) else 0.0
+        desconto_percentual = max(0.0, desconto_percentual)
+        # Se houver desconto, estimar preço cheio com base no percentual
+        if desconto_percentual > 0.0 and desconto_percentual < 100.0:
+            fator = 1.0 - (desconto_percentual / 100.0)
+            preco_cheio = preco_liquido / fator if fator > 0 else preco_liquido
+        else:
+            preco_cheio = preco_liquido
+        item_total_liquido = preco_liquido * quantidade
+        item_total_cheio = preco_cheio * quantidade
+        item_economia = max(0.0, item_total_cheio - item_total_liquido)
+        subtotal_liquido += item_total_liquido
+        total_desconto_exibicao += item_economia
+        cart_items_info[cart_key] = {
+            'desconto_percentual': desconto_percentual,
+            'preco_liquido': preco_liquido,
+            'preco_cheio': preco_cheio,
+            'item_total_liquido': item_total_liquido,
+            'item_total_cheio': item_total_cheio,
+            'item_economia': item_economia,
+        }
+    total_final = subtotal_liquido  # não desconta novamente
+    return subtotal_liquido, total_desconto_exibicao, total_final, cart_items_info
+
 @loja_bp.route('/')
 def index():
     """Página inicial da loja"""
@@ -114,9 +161,16 @@ def adicionar_carrinho():
 def carrinho():
     """Página do carrinho de compras"""
     cart = session.get('cart', {})
-    # Garantir que preço e quantidade sejam números
-    total = sum(float(item['preco']) * int(item['quantidade']) for item in cart.values())
-    return render_template('loja/carrinho.html', cart=cart, total=total)
+    # Calcular totais com possível desconto
+    subtotal, total_desconto, total_final, cart_items_info = calcular_totais_carrinho(cart)
+    return render_template(
+        'loja/carrinho.html',
+        cart=cart,
+        subtotal=subtotal,
+        total_desconto=total_desconto,
+        total=total_final,
+        cart_info=cart_items_info,
+    )
 
 @loja_bp.route('/atualizar_carrinho', methods=['POST'])
 def atualizar_carrinho():
@@ -163,19 +217,20 @@ def atualizar_quantidade_ajax():
         session['cart'] = cart
         session.modified = True
         
-        # Calcular novos totais
-        item_total = 0
-        if cart_key in cart:
-            item_total = float(cart[cart_key]['preco']) * int(cart[cart_key]['quantidade'])
-        
-        cart_total = sum(float(item['preco']) * int(item['quantidade']) for item in cart.values())
+        # Calcular novos totais (com desconto)
+        subtotal, total_desconto, cart_total, cart_items_info = calcular_totais_carrinho(cart)
+        item_total = 0.0
+        if cart_key in cart and cart_key in cart_items_info:
+            item_total = float(cart_items_info[cart_key]['item_total_liquido'])
         cart_count = sum(item['quantidade'] for item in cart.values())
         
-        debug_log(f"AJAX: Novos totais - Item: R$ {item_total:.2f}, Carrinho: R$ {cart_total:.2f}, Itens: {cart_count}", "SUCCESS")
+        debug_log(f"AJAX: Novos totais - Item: R$ {item_total:.2f}, Subtotal: R$ {subtotal:.2f}, Economia: R$ {total_desconto:.2f}, Total: R$ {cart_total:.2f}, Itens: {cart_count}", "SUCCESS")
         
         return jsonify({
             'success': True,
             'item_total': f"{item_total:.2f}",
+            'cart_subtotal': f"{subtotal:.2f}",
+            'cart_discount': f"{total_desconto:.2f}",
             'cart_total': f"{cart_total:.2f}",
             'cart_count': cart_count,
             'item_removed': quantidade <= 0
@@ -210,7 +265,7 @@ def checkout():
         flash('Seu carrinho está vazio!', 'warning')
         return redirect(url_for('loja.index'))
     
-    total = sum(float(item['preco']) * int(item['quantidade']) for item in cart.values())
+    subtotal, total_desconto, total_final, cart_items_info = calcular_totais_carrinho(cart)
     
     # Buscar dados do usuário logado
     from models import Usuario
@@ -220,7 +275,15 @@ def checkout():
         session.clear()
         return redirect(url_for('usuarios.login'))
     
-    return render_template('loja/checkout.html', cart=cart, total=total, usuario=usuario)
+    return render_template(
+        'loja/checkout.html',
+        cart=cart,
+        subtotal=subtotal,
+        total_desconto=total_desconto,
+        total=total_final,
+        usuario=usuario,
+        cart_info=cart_items_info,
+    )
 
 @loja_bp.route('/finalizar_pedido', methods=['POST'])
 def finalizar_pedido():
@@ -245,8 +308,8 @@ def finalizar_pedido():
         return redirect(url_for('usuarios.login'))
     
     try:
-        # Calcular total
-        total = sum(float(item['preco']) * int(item['quantidade']) for item in cart.values())
+        # Calcular total (com desconto)
+        subtotal, total_desconto, total_final, cart_items_info = calcular_totais_carrinho(cart)
         
         # Gerar número único do pedido
         import random
@@ -268,7 +331,7 @@ def finalizar_pedido():
             usuario_id=usuario.id,
             numero_pedido=numero_pedido,
             status='pendente',
-            total=total,
+            total=total_final,
             observacoes=f"Pedido realizado via site. Contato: {usuario.telefone or 'N/A'}"
         )
         db.session.add(pedido)
@@ -281,12 +344,14 @@ def finalizar_pedido():
             doce_id = parts[0]  # Pega apenas a primeira parte antes do underscore
             sabor_selecionado = parts[1] if len(parts) > 1 else None  # Pega o resto como sabor
             
+            # Preço unitário já é líquido no carrinho (não aplicar desconto novamente)
+            preco_unitario_aplicado = float(cart_items_info.get(cart_key, {}).get('preco_liquido', float(item['preco'])))
             item_pedido = ItemPedido(
                 pedido_id=pedido.id,
                 doce_id=int(doce_id),
                 quantidade=item['quantidade'],
-                preco_unitario=float(item['preco']),
-                preco_total=float(item['preco']) * int(item['quantidade']),
+                preco_unitario=preco_unitario_aplicado,
+                preco_total=preco_unitario_aplicado * int(item['quantidade']),
                 sabor_selecionado=sabor_selecionado
             )
             db.session.add(item_pedido)
@@ -315,7 +380,7 @@ def finalizar_pedido():
         return render_template(
             'loja/pedido_finalizado.html',
             nome=usuario.nome,
-            total=total,
+            total=total_final,
             pedido_id=pedido.numero_pedido,
             emails_sent=emails_sent,
         )
