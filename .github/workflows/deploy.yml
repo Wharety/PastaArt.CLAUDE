@@ -41,6 +41,11 @@ jobs:
         script: |
           set -e
           REPO_DIR=~/PastaArt.CLAUDE
+          
+          # Gerar ASSET_VERSION única baseada no timestamp e commit
+          ASSET_VERSION="$(date +%Y%m%d-%H%M%S)-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "🔄 Gerando ASSET_VERSION: $ASSET_VERSION"
+          
           if [ ! -d "$REPO_DIR/.git" ]; then
             rm -rf "$REPO_DIR"
             git clone https://github.com/Wharety/PastaArt.CLAUDE.git "$REPO_DIR"
@@ -50,6 +55,7 @@ jobs:
             git reset --hard origin/main
             git clean -fd
           fi
+          
           cd "$REPO_DIR"
           if [ ! -d "venv" ]; then
             python3 -m venv venv
@@ -57,9 +63,19 @@ jobs:
           . venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          
+          # Atualizar ASSET_VERSION no unit file automaticamente
+          echo "📝 Atualizando ASSET_VERSION no serviço..."
+          sudo sed -i "s/ASSET_VERSION=[^ ]*/ASSET_VERSION=$ASSET_VERSION/" /etc/systemd/system/pasta-art.service
+          
+          # Se não existir, adicionar na linha do Environment
+          if ! grep -q "ASSET_VERSION" /etc/systemd/system/pasta-art.service; then
+            sudo sed -i 's/Environment=FLASK_ENV=production PYTHONUNBUFFERED=1/Environment=FLASK_ENV=production PYTHONUNBUFFERED=1 ASSET_VERSION='"$ASSET_VERSION"'/' /etc/systemd/system/pasta-art.service
+          fi
+          
           sudo systemctl daemon-reload
           sudo systemctl restart pasta-art
-          echo "✅ Deploy completed successfully!"
+          echo "✅ Deploy completed successfully! ASSET_VERSION: $ASSET_VERSION"
           
     - name: Notify deployment status
       if: always()

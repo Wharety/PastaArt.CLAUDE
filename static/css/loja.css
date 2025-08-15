@@ -1158,7 +1158,6 @@
 /* CTA sticky no mobile na página de produto */
 @media (max-width: 768px) {
     .product-actions-detail .action-buttons {
-        position: sticky;
         bottom: 0;
         left: 0;
         right: 0;
