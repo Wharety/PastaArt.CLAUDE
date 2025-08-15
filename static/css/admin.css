@@ -708,7 +708,7 @@
 /* Kit builder (removendo estilos inline) */
 .kit-item-row { display: flex; gap: .5rem; margin-bottom: .5rem; align-items: center; }
 .kit-produto-select { flex: 1; }
-.kit-qty-input { width: 60px; }
+.kit-qty-input { width: 70px; }
 
 .current-image {
     margin-bottom: var(--space-8);
