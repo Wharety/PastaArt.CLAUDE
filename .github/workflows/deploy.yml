@@ -75,6 +75,7 @@ jobs:
           
           sudo systemctl daemon-reload
           sudo systemctl restart pasta-art
+          sudo journalctl -u pasta-art -e | grep "Cache busting"
           echo "✅ Deploy completed successfully! ASSET_VERSION: $ASSET_VERSION"
           
     - name: Notify deployment status

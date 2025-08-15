@@ -658,7 +658,7 @@
 }
 
 .price-value {
-    font-size: var(--text-3xl);
+    font-size: var(--text-2xl);
     font-weight: var(--font-semibold);
     color: var(--color-primary);
 }
