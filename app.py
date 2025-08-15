@@ -43,11 +43,14 @@ def create_app():
     # Configurações
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'pasta-art-encanto-secret-key-2025')
     # Versão de assets para cache busting (definível por variável de ambiente)
-    app.config['ASSET_VERSION'] = (
+    # Inclui microsegundos para garantir mudança a cada restart em dev
+    asset_version = (
         os.getenv('ASSET_VERSION')
         or os.getenv('RELEASE')
-        or datetime.now().strftime('%Y%m%d%H%M%S')
+        or datetime.now().strftime('%Y%m%d%H%M%S%f')[:16]  # YYYYMMDDHHMMSSFF
     )
+    app.config['ASSET_VERSION'] = asset_version
+    debug_log(f"🔄 Cache busting ativo: ASSET_VERSION={asset_version}", "INFO")
     # Cache padrão de arquivos estáticos (1 ano)
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
     
@@ -212,10 +215,13 @@ def create_app():
             else:
                 response.headers['Cache-Control'] = 'public, max-age=604800'
         else:
-            # Conteúdo HTML sempre revalida
-            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            # Conteúdo HTML sempre revalida - forçar navegador a sempre verificar mudanças
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '0'
+            response.headers['Last-Modified'] = datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
+            # ETag único para cada resposta HTML garante detecção de mudanças
+            response.headers['ETag'] = f'"{asset_version}-{datetime.now().timestamp()}"'
         return response
 
     # Context processor para configurações globais

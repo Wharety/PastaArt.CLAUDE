@@ -16,11 +16,12 @@
 .badge-sm { font-size: .72rem; padding: .16rem .42rem; }
 .badge-discount { background: #fff1f0; color: #c0392b; border: 1px solid #ffd9d6; }
 .badge-discount i { color: #e74c3c; }
-.badge-popular { background: #fff9e6; color: #8a6800; border: 1px solid #ffefbe; position: absolute; margin: .4rem .4rem; }
+.badge-discount-card { background: #fff1f0; color: #c0392b; border: 1px solid #ffd9d6; position: absolute; right: 0; margin: .4rem .4rem; }
+.badge-popular { background: #fff9e6; color: #8a6800; border: 1px solid #ffefbe; position: absolute; margin: .4rem .4rem; left: 0; }
 .badge-popular i { color: #f1c40f; }
 
 /* Cards de produto - precificação */
-.card-price-row { display: flex; align-items: baseline; gap: .45rem; flex-wrap: wrap; position: absolute; transform: translate(16%, 23%); right:0; top: 0; }
+.card-price-row { display: flex; align-items: center; gap: .5rem; margin-top: .35rem; flex-wrap: wrap; position: absolute; right: 0; top: 0;}
 .card-price { font-weight: 700; color: #3f372f; font-size: 1.05rem; }
 .card-price-old { color: #9e9083; text-decoration: line-through; font-size: .9rem; opacity: .75; }
 /* ================================

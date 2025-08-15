@@ -34,6 +34,12 @@
                             <i class="fas fa-birthday-cake"></i>
                         </div>
                     {% endif %}
+                    {% if doce.mais_pedido %}
+                            <span class="badge badge-popular badge-sm"><i class="fas fa-fire"></i> O mais pedido</span>
+                        {% endif %}              
+                    {% if doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}
+                        <span class="badge badge-discount-card badge-sm"><i class="fas fa-tag"></i> {{ '%.0f'|format(doce.desconto_percentual) }}% OFF</span>
+                    {% endif %}
                     <div class="product-overlay">
                         <a href="{{ url_for('loja.detalhes_doce', doce_id=doce.id) }}" class="btn btn-ghost btn-small">
                             <i class="fas fa-eye"></i>
@@ -41,14 +47,7 @@
                         </a>
                     </div>
                 </div>
-                        {% if doce.mais_pedido %}
-                            <span class="badge badge-popular badge-sm"><i class="fas fa-fire"></i> O mais pedido</span>
-                        {% endif %}
-                <div class="card-price-row">               
-                    {% if doce.desconto_percentual is not none and doce.desconto_percentual > 0 %}
-                        <span class="badge badge-discount badge-sm"><i class="fas fa-tag"></i> {{ '%.0f'|format(doce.desconto_percentual) }}% OFF</span>
-                    {% endif %}
-                </div>            
+                                
                 <div class="product-info">
                     <h3 class="product-name">{{ doce.nome }}</h3>
                     <p class="product-description">{{ doce.descricao[:80] }}{% if doce.descricao|length > 80 %}...{% endif %}</p>               
