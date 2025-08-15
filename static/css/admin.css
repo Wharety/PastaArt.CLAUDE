@@ -1116,7 +1116,7 @@
     }
     
     .form-section {
-        padding: var(--space-6);
+        padding: var(--space-4);
     }
     
     .form-row {
@@ -1281,7 +1281,7 @@
     }
     
     .form-section {
-        padding: var(--space-4);
+        padding: var(--space-1);
     }
     
     .action-card {

@@ -122,7 +122,7 @@
                                         <option value="{{ p.id }}" data-preco="{{ '%.2f'|format(p.preco) }}" {% if p.id == item.produto_id %}selected{% endif %}>{{ p.nome }} (R$ {{ '%.2f'|format(p.preco) }})</option>
                                     {% endfor %}
                                 </select>
-                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:120px;" min="1" value="{{ item.quantidade }}">
+                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:60px;" min="1" value="{{ item.quantidade }}">
                                 <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
                             </div>
                             {% endfor %}
@@ -133,7 +133,7 @@
                                         <option value="{{ p.id }}" data-preco="{{ '%.2f'|format(p.preco) }}">{{ p.nome }} (R$ {{ '%.2f'|format(p.preco) }})</option>
                                     {% endfor %}
                                 </select>
-                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:120px;" min="1" value="1">
+                                <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:60px;" min="1" value="1">
                                 <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
                             </div>
                         {% endif %}
@@ -554,7 +554,7 @@ function addKitRow() {
         <select name="kit_produto_id[]" class="form-control kit-produto-select" style="flex:1;">
             ${Array.from(document.querySelectorAll('#kit-items select:first-child option')).map(o => `<option value="${o.value}" data-preco="${o.dataset?.preco || ''}">${o.textContent}</option>`).join('')}
         </select>
-        <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:120px;" min="1" value="1">
+        <input type="number" name="kit_quantidade[]" class="form-control kit-qty-input" style="width:60px;" min="1" value="1">
         <button type="button" class="btn btn-outline" onclick="removeKitRow(this)"><i class="fas fa-trash"></i></button>
     `;
     container.appendChild(row);

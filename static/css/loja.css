@@ -20,7 +20,7 @@
 .badge-popular i { color: #f1c40f; }
 
 /* Cards de produto - precificação */
-.card-price-row { display: flex; align-items: baseline; gap: .45rem; margin-top: 1rem; flex-wrap: wrap; position: absolute; transform: translate(20%, -30%); right:0; }
+.card-price-row { display: flex; align-items: baseline; gap: .45rem; flex-wrap: wrap; position: absolute; transform: translate(16%, 23%); right:0; top: 0; }
 .card-price { font-weight: 700; color: #3f372f; font-size: 1.05rem; }
 .card-price-old { color: #9e9083; text-decoration: line-through; font-size: .9rem; opacity: .75; }
 /* ================================
