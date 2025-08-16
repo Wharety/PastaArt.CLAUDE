@@ -357,7 +357,7 @@ def create_app():
             'User-agent: *',
             'Allow: /',
             'Disallow: /admin',
-            f'Sitemap: {request.url_root.rstrip('/')}/sitemap.xml'
+            f"Sitemap: {request.url_root.rstrip('/')}/sitemap.xml"
         ]
         from flask import Response
         return Response('\n'.join(lines), mimetype='text/plain; charset=utf-8')
