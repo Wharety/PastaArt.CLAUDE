@@ -57,11 +57,16 @@
                                        id="quantidade_{{ cart_key }}" 
                                        name="quantidade" 
                                        value="{{ item.quantidade }}" 
-                                       min="1" 
+                                       min="{{ item.quantidade_minima or 1 }}" 
                                        max="50"
                                        onchange="updateQuantityAjax('{{ cart_key }}', this.value)">
                                 <button type="button" class="quantity-btn" onclick="updateQuantityAjax('{{ cart_key }}', 1)">+</button>
                             </div>
+                            {% if (item.quantidade_minima or 1) > 1 %}
+                            <small class="quantity-hint" id="min_hint_{{ cart_key }}">
+                                Quantidade mínima: {{ item.quantidade_minima }} {{ item.unidade_venda or 'unidade' }}
+                            </small>
+                            {% endif %}
                             <input type="hidden" name="cart_key" value="{{ cart_key }}">
                         </form>
                     </div>
@@ -158,15 +163,9 @@ function updateQuantityAjax(cartKey, change) {
         quantidade = currentValue + change;
     }
     
-    if (quantidade < 1) {
-        showConfirm('Deseja remover este item do carrinho?', 'Remover Item', 'fas fa-trash').then(function(result) {
-            if (result) {
-                quantidade = 0;
-            } else {
-                input.value = 1;
-                return;
-            }
-        });
+    const minValue = parseInt(input.min) || 1;
+    if (quantidade < minValue) {
+        quantidade = minValue;
     }
     
     if (quantidade > 50) {

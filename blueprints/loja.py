@@ -128,8 +128,17 @@ def adicionar_carrinho():
         cart_key = str(doce_id)
         debug_log(f"Usando chave simples: {cart_key}", "CART")
     
+    # Garantir quantidade mínima ao adicionar
+    min_q = int(doce.quantidade_minima or 1)
+    if quantidade < min_q:
+        quantidade = min_q
+    
     if cart_key in cart:
         quantidade_anterior = cart[cart_key]['quantidade']
+        # Caso o item existente esteja abaixo do mínimo, eleva para o mínimo primeiro
+        if quantidade_anterior < min_q:
+            cart[cart_key]['quantidade'] = min_q
+        # Somar a nova quantidade
         cart[cart_key]['quantidade'] += quantidade
         debug_log(f"Produto com mesmo sabor já no carrinho. Quantidade: {quantidade_anterior} → {cart[cart_key]['quantidade']}", "CART")
     else:
@@ -139,7 +148,9 @@ def adicionar_carrinho():
             'preco': float(doce.preco),  # Converter Decimal para float
             'imagem_url': doce.imagem_url,
             'quantidade': quantidade,
-            'sabor_selecionado': sabor_selecionado
+            'sabor_selecionado': sabor_selecionado,
+            'quantidade_minima': min_q,
+            'unidade_venda': doce.unidade_venda
         }
         debug_log(f"Novo produto/sabor adicionado ao carrinho: {doce.nome} - {sabor_selecionado}", "SUCCESS")
     
@@ -204,6 +215,11 @@ def atualizar_quantidade_ajax():
         
         if cart_key not in cart:
             return jsonify({'success': False, 'error': 'Item não encontrado no carrinho'})
+        
+        # Aplicar quantidade mínima se existir
+        quantidade_minima_item = int(cart[cart_key].get('quantidade_minima') or 1)
+        if quantidade > 0 and quantidade < quantidade_minima_item:
+            quantidade = quantidade_minima_item
         
         if quantidade <= 0:
             # Remover item se quantidade for 0 ou negativa
