@@ -18,6 +18,7 @@ function initializeAdminApp() {
     initFormValidations();
     initConfirmations();
     initPreviewUpdates();
+    initImageLightbox();
     
     console.log('🛠️ Painel Administrativo - Aplicação inicializada');
 }
@@ -655,6 +656,190 @@ function getNotificationIcon(type) {
 }
 
 /**
+ * Lightbox de imagem com zoom/arraste para o admin
+ */
+function initImageLightbox() {
+    const selectors = [
+        '.table-product-image',
+        '.product-mini-image img',
+        '.product-image-mobile img',
+        '.current-image img',
+        '.upload-preview img',
+        '#current-image',
+        '#preview-product-image img',
+        '#currentLogo', '#currentBanner',
+        '#currentTradicionalImage', '#currentPersonalizadoImage',
+        '.order-items-card .item-image img'
+    ];
+
+    // Marcar imagens como zoomable e bindar clique
+    const images = document.querySelectorAll(selectors.join(','));
+    images.forEach(img => {
+        if (!img.dataset.zoomBound) {
+            img.dataset.zoomBound = 'true';
+            img.style.cursor = 'zoom-in';
+            img.addEventListener('click', () => openImageLightbox(img.src, img.alt || 'Imagem'));
+        }
+    });
+
+    // Observar inserções dinâmicas (previews, etc.)
+    if (!window.__imageLightboxObserver) {
+        const observer = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                m.addedNodes && m.addedNodes.forEach(node => {
+                    if (node.nodeType !== 1) return;
+                    const isImg = node.tagName === 'IMG' ? [node] : Array.from(node.querySelectorAll?.('img') || []);
+                    isImg.forEach(img => {
+                        if (!img.dataset.zoomBound && (
+                            img.closest('.upload-preview') ||
+                            img.closest('.current-image') ||
+                            img.closest('#preview-product-image')
+                        )) {
+                            img.dataset.zoomBound = 'true';
+                            img.style.cursor = 'zoom-in';
+                            img.addEventListener('click', () => openImageLightbox(img.src, img.alt || 'Imagem'));
+                        }
+                    });
+                });
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        window.__imageLightboxObserver = observer;
+    }
+}
+
+function openImageLightbox(src, alt) {
+    let overlay = document.getElementById('imageLightboxOverlay');
+    if (!overlay) {
+        overlay = createImageLightboxOverlay();
+        document.body.appendChild(overlay);
+    }
+
+    const img = overlay.querySelector('.image-lightbox-img');
+    const title = overlay.querySelector('.image-lightbox-title');
+    img.src = src;
+    title.textContent = alt || '';
+
+    // Reset estado
+    resetImageTransform(overlay);
+
+    // Mostrar
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => overlay.classList.add('show'));
+}
+
+function createImageLightboxOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'imageLightboxOverlay';
+    overlay.className = 'image-lightbox-overlay';
+    overlay.innerHTML = `
+        <div class="image-lightbox-toolbar">
+            <div class="image-lightbox-title"></div>
+            <div class="image-lightbox-actions">
+                <button class="image-lightbox-btn" data-action="zoom-out" title="Diminuir ( - )"><i class="fas fa-search-minus"></i></button>
+                <button class="image-lightbox-btn" data-action="zoom-in" title="Aumentar ( + )"><i class="fas fa-search-plus"></i></button>
+                <button class="image-lightbox-btn" data-action="reset" title="Ajustar (0)"><i class="fas fa-compress"></i></button>
+                <button class="image-lightbox-btn close" data-action="close" title="Fechar (Esc)"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div class="image-lightbox-stage">
+            <img class="image-lightbox-img" alt="preview" draggable="false" />
+        </div>
+    `;
+
+    // Eventos de fechamento
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) hideImageLightbox(overlay);
+    });
+    overlay.querySelector('[data-action="close"]').addEventListener('click', () => hideImageLightbox(overlay));
+
+    // Interações de zoom/arraste
+    const stage = overlay.querySelector('.image-lightbox-stage');
+    const img = overlay.querySelector('.image-lightbox-img');
+    const ZOOM_STEP = 0.2;
+    const MIN_SCALE = 1;
+    const MAX_SCALE = 5;
+    let scale = 1;
+    let pos = { x: 0, y: 0 };
+    let isPanning = false;
+    let start = { x: 0, y: 0 };
+
+    function applyTransform() {
+        img.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
+        img.style.cursor = scale > 1 ? 'grab' : 'zoom-out';
+    }
+
+    stage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = Math.sign(e.deltaY);
+        scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + (delta > 0 ? -ZOOM_STEP : ZOOM_STEP)));
+        applyTransform();
+    }, { passive: false });
+
+    stage.addEventListener('mousedown', (e) => {
+        if (scale <= 1) return;
+        isPanning = true;
+        start = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+        img.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mouseup', () => {
+        isPanning = false;
+        if (scale > 1) img.style.cursor = 'grab';
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        pos = { x: e.clientX - start.x, y: e.clientY - start.y };
+        applyTransform();
+    });
+
+    // Duplo clique para alternar zoom
+    stage.addEventListener('dblclick', () => {
+        scale = scale > 1 ? 1 : 2;
+        pos = { x: 0, y: 0 };
+        applyTransform();
+    });
+
+    // Botões
+    overlay.querySelector('[data-action="zoom-in"]').addEventListener('click', () => {
+        scale = Math.min(MAX_SCALE, scale + ZOOM_STEP);
+        applyTransform();
+    });
+    overlay.querySelector('[data-action="zoom-out"]').addEventListener('click', () => {
+        scale = Math.max(MIN_SCALE, scale - ZOOM_STEP);
+        applyTransform();
+    });
+    overlay.querySelector('[data-action="reset"]').addEventListener('click', () => {
+        scale = 1; pos = { x: 0, y: 0 }; applyTransform();
+    });
+
+    // Teclado
+    window.addEventListener('keydown', (e) => {
+        if (overlay.style.display !== 'flex') return;
+        if (e.key === 'Escape') hideImageLightbox(overlay);
+        if (e.key === '+') { scale = Math.min(MAX_SCALE, scale + ZOOM_STEP); applyTransform(); }
+        if (e.key === '-') { scale = Math.max(MIN_SCALE, scale - ZOOM_STEP); applyTransform(); }
+        if (e.key === '0') { scale = 1; pos = { x: 0, y: 0 }; applyTransform(); }
+    });
+
+    // Guardar estado e helpers
+    overlay._imageState = { get scale() { return scale; }, set scale(v) { scale = v; }, get pos() { return pos; }, set pos(v) { pos = v; }, applyTransform };
+
+    function reset() { scale = 1; pos = { x: 0, y: 0 }; applyTransform(); }
+    overlay._reset = reset;
+
+    return overlay;
+}
+
+function resetImageTransform(overlay) {
+    if (overlay && typeof overlay._reset === 'function') overlay._reset();
+}
+
+function hideImageLightbox(overlay) {
+    overlay.classList.remove('show');
+    setTimeout(() => { overlay.style.display = 'none'; }, 200);
+}
+
+/**
  * Mostrar loading
  */
 function showLoading(element, text = 'Carregando...') {
@@ -737,5 +922,6 @@ window.AdminApp = {
     hideLoading,
     updateProductPreview,
     removeImagePreview,
-    AdminStats
+    AdminStats,
+    initImageLightbox
 };
