@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
 {% block title %}Doces Tradicionais - PastaArt Encanto{% endblock %}
+{% block meta_description %}Doces tradicionais artesanais em Sinop: brigadeiro, beijinho, cajuzinho e mais. Encomendas para festas e eventos.{% endblock %}
+{% block og_title %}Doces Tradicionais em Sinop | PastaArt Encanto{% endblock %}
+{% block og_description %}Doces clássicos artesanais em Sinop, perfeitos para sua comemoração. Faça sua encomenda.{% endblock %}
+{% block og_type %}website{% endblock %}
 
 {% block content %}
 <div class="category-page">
@@ -14,7 +18,7 @@
                     Doces Tradicionais
                 </h1>
                 <p class="page-subtitle">Nossos doces clássicos, feitos com receitas tradicionais e ingredientes selecionados</p>
-            </div>
+            </div>         
         </div>
     </div>
 </div>
@@ -22,6 +26,11 @@
 <!-- Products Section -->
 <section class="products-section">
     <div class="container">
+        <nav class="breadcrumb">
+            <a href="{{ url_for('loja.index') }}">Início</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Doces Tradicionais</span>
+        </nav>
         {% if doces %}
         <div class="products-grid">
             {% for doce in doces %}

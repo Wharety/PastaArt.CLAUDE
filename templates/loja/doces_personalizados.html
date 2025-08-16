@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
 {% block title %}Doces Personalizados - PastaArt Encanto{% endblock %}
+{% block meta_description %}Doces personalizados em Sinop para casamento, festa infantil, chá revelação e eventos corporativos. Peças exclusivas sob medida.{% endblock %}
+{% block og_title %}Doces Personalizados em Sinop | PastaArt Encanto{% endblock %}
+{% block og_description %}Criações artesanais sob medida para seu evento em Sinop. Faça sua encomenda personalizada.{% endblock %}
+{% block og_type %}website{% endblock %}
 
 {% block content %}
 <div class="category-page">
@@ -14,7 +18,7 @@
                     Doces Personalizados
                 </h1>
                 <p class="page-subtitle">Doces únicos e personalizados para seus eventos especiais</p>
-            </div>
+            </div>          
         </div>
     </div>
 </div>
@@ -22,6 +26,11 @@
 <!-- Products Section -->
 <section class="products-section">
     <div class="container">
+        <nav class="breadcrumb">
+            <a href="{{ url_for('loja.index') }}">Início</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Doces Personalizados</span>
+        </nav>
         {% if doces %}
         <div class="products-grid">
             {% for doce in doces %}

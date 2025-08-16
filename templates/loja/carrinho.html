@@ -112,7 +112,7 @@
                             Finalizar Pedido
                         </a>
                         
-                        <a href="{{ url_for('loja.index') }}" class="btn btn-outline btn-large btn-full">
+                        <a href="{{ request.referrer or url_for('loja.index') }}" class="btn btn-outline btn-large btn-full btn-continue-shopping">
                             <i class="fas fa-arrow-left"></i>
                             Continuar Comprando
                         </a>
@@ -381,5 +381,14 @@ document.querySelector('.btn-primary.btn-large')?.addEventListener('click', func
 });
 
 // Feedback visual para botões de quantidade já é gerenciado pelo main.js
+// Continuar Comprando: voltar para página anterior se mesma origem
+document.querySelector('.btn-continue-shopping')?.addEventListener('click', function(e) {
+    try {
+        if (document.referrer && new URL(document.referrer).origin === location.origin) {
+            e.preventDefault();
+            history.back();
+        }
+    } catch (_) {}
+});
 </script>
 {% endblock %}

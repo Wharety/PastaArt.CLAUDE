@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block title %}{{ doce.nome }} - PastaArt Encanto{% endblock %}
+{% block meta_description %}{{ (doce.descricao[:155] ~ ('...' if doce.descricao|length > 155 else '')) if doce.descricao else 'Doces personalizados artesanais feitos sob encomenda.' }}{% endblock %}
+{% block og_title %}{{ doce.nome }} | PastaArt Encanto{% endblock %}
+{% block og_description %}{{ (doce.descricao[:200] ~ ('...' if doce.descricao|length > 200 else '')) if doce.descricao else 'Doces artesanais exclusivos sob encomenda.' }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}{{ url_for('static', filename=(doce.imagem_url or 'images/banner.webp'), _external=True) }}{% endblock %}
 
 {% block content %}
 <section class="product-details">
@@ -138,7 +143,7 @@
                                 Adicionar ao Carrinho
                             </button>
                             
-                            <a href="{{ url_for('loja.index') }}" class="btn btn-outline btn-large">
+                            <a href="{{ request.referrer or url_for('loja.index') }}" class="btn btn-outline btn-large btn-continue-shopping">
                                 <i class="fas fa-arrow-left"></i>
                                 Continuar Comprando
                             </a>
@@ -231,6 +236,20 @@ document.addEventListener('DOMContentLoaded', function() {
             radio.addEventListener('change', function() {
                 saborInput.value = this.value;
             });
+        });
+    }
+    // Continuar Comprando: voltar para página anterior se mesma origem
+    const continueBtn = document.querySelector('.btn-continue-shopping');
+    if (continueBtn) {
+        continueBtn.addEventListener('click', function(e) {
+            try {
+                if (document.referrer && new URL(document.referrer).origin === location.origin) {
+                    e.preventDefault();
+                    history.back();
+                }
+            } catch (err) {
+                // ignora parsing errors
+            }
         });
     }
 });

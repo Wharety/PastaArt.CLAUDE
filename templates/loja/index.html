@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}PastaArt Encanto - Doces Personalizados{% endblock %}
+{% block title %}Doces Personalizados | PastaArt Encanto{% endblock %}
+
+{% block meta_description %}Doces personalizados e tradicionais em Sinop. Encomende para casamento, festa infantil e eventos corporativos com acabamento artesanal.{% endblock %}
+{% block og_title %}Doces Personalizados em Sinop | PastaArt Encanto{% endblock %}
+{% block og_description %}Encomende doces personalizados, bolos e kits para eventos em Sinop. Qualidade artesanal e atendimento por WhatsApp.{% endblock %}
+{% block og_type %}website{% endblock %}
 
 {% block content %}
 
@@ -8,7 +13,7 @@
 <section id="produtos" class="products-categories-section">
     <div class="container">
         <div class="section-header">
-            <h2 class="section-title">{{ config.produtos_titulo or 'Nossos Doces' }}</h2>
+            <h1 class="section-title">{{ config.hero_titulo or 'Nossos Doces' }}</h1>
             <p class="section-subtitle">{{ config.produtos_subtitulo or 'Escolha a categoria que melhor atende suas necessidades' }}</p>
         </div>
 

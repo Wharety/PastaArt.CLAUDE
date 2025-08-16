@@ -350,6 +350,52 @@ def create_app():
         return dict(csrf_token=generate_csrf)
     
     
+    # Rotas SEO: robots.txt e sitemap.xml
+    @app.route('/robots.txt')
+    def robots_txt():
+        lines = [
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /admin',
+            f'Sitemap: {request.url_root.rstrip('/')}/sitemap.xml'
+        ]
+        from flask import Response
+        return Response('\n'.join(lines), mimetype='text/plain; charset=utf-8')
+
+    @app.route('/sitemap.xml')
+    def sitemap_xml():
+        from flask import Response
+        from models import Doce
+        import xml.etree.ElementTree as ET
+        from urllib.parse import urljoin
+
+        urlset = ET.Element('urlset', attrib={
+            'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9'
+        })
+
+        def add_url(loc: str, changefreq: str = 'weekly'):
+            url = ET.SubElement(urlset, 'url')
+            ET.SubElement(url, 'loc').text = loc
+            ET.SubElement(url, 'changefreq').text = changefreq
+
+        base = request.url_root
+        # Rotas estáticas principais
+        add_url(urljoin(base, url_for('loja.index')))
+        add_url(urljoin(base, url_for('loja.doces_tradicionais')))
+        add_url(urljoin(base, url_for('loja.doces_personalizados')))
+
+        # Produtos ativos
+        try:
+            with app.app_context():
+                produtos = Doce.query.filter_by(ativo=True).all()
+                for p in produtos:
+                    add_url(urljoin(base, url_for('loja.detalhes_doce', doce_id=p.id)), 'weekly')
+        except Exception:
+            pass
+
+        xml_bytes = ET.tostring(urlset, encoding='utf-8', method='xml')
+        return Response(xml_bytes, mimetype='application/xml; charset=utf-8')
+
     return app
 
 def init_db():
