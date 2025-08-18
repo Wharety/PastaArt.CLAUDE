@@ -19,6 +19,7 @@ function initializeAdminApp() {
     initConfirmations();
     initPreviewUpdates();
     initImageLightbox();
+    initBottomNav();
     
     console.log('🛠️ Painel Administrativo - Aplicação inicializada');
 }
@@ -923,5 +924,28 @@ window.AdminApp = {
     updateProductPreview,
     removeImagePreview,
     AdminStats,
-    initImageLightbox
+    initImageLightbox,
+    initBottomNav
 };
+
+/**
+ * Bottom navbar (mobile) - marcar ativo conforme rota
+ */
+function initBottomNav() {
+    const links = document.querySelectorAll('.admin-bottom-nav .admin-bottom-link');
+    if (!links.length) return;
+    const path = window.location.pathname;
+
+    links.forEach(a => a.classList.remove('active'));
+
+    let key = null;
+    if (/\/admin(\/dashboard)?\/?$/.test(path)) key = 'dashboard';
+    else if (/\/admin\/doces/.test(path)) key = 'produtos';
+    else if (/\/admin\/pedidos/.test(path)) key = 'pedidos';
+    else if (/\/configuracoes/.test(path)) key = 'configuracoes';
+
+    if (key) {
+        const active = document.querySelector(`.admin-bottom-link[data-nav="${key}"]`);
+        if (active) active.classList.add('active');
+    }
+}

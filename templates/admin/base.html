@@ -38,13 +38,6 @@
             </div>
                 </a>
                 
-                <!-- Mobile Menu Toggle -->
-                <button class="admin-mobile-toggle" onclick="toggleAdminMenu()">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </button>
-                
                 <nav class="admin-menu" id="adminMenu">
                     <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">
                         <i class="fas fa-tachometer-alt"></i> Dashboard
@@ -103,6 +96,26 @@
         </div>
     </footer>
 
+    <!-- Bottom Navbar (Mobile) -->
+    <nav class="admin-bottom-nav" aria-label="Navegação principal">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-bottom-link" data-nav="dashboard">
+            <i class="fas fa-home"></i>
+            <span>Início</span>
+        </a>
+        <a href="{{ url_for('admin.listar_doces') }}" class="admin-bottom-link" data-nav="produtos">
+            <i class="fas fa-birthday-cake"></i>
+            <span>Produtos</span>
+        </a>
+        <a href="{{ url_for('admin.listar_pedidos') }}" class="admin-bottom-link" data-nav="pedidos">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Pedidos</span>
+        </a>
+        <a href="{{ url_for('configuracoes.listar_configuracoes') }}" class="admin-bottom-link" data-nav="configuracoes">
+            <i class="fas fa-cogs"></i>
+            <span>Config.</span>
+        </a>
+    </nav>
+    
     <!-- JavaScript -->
     <script src="{{ asset_url('js/admin.js') }}"></script>
     <script src="{{ asset_url('js/modal.js') }}"></script>

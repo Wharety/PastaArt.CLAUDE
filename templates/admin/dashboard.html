@@ -4,14 +4,14 @@
 
 {% block content %}
 <div class="admin-page-header">
-            <h1 class="admin-page-title">
-            <i class="fas fa-tachometer-alt"></i>
-            {{ config.dashboard_titulo or 'Dashboard' }}
-        </h1>
-        <p class="admin-page-subtitle">{{ config.dashboard_subtitulo or 'Visão geral da sua loja' }}</p>
+    <h1 class="admin-page-title">
+        <i class="fas fa-tachometer-alt"></i>
+        {{ config.dashboard_titulo or 'Dashboard' }}
+    </h1>
+    <p class="admin-page-subtitle">{{ config.dashboard_subtitulo or 'Visão geral da sua loja' }}</p>
 </div>
 
-<!-- Cards de Estatísticas -->
+<!-- Cards de Estatísticas (sempre visível) -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon">
@@ -67,8 +67,8 @@
     </div>
 </div>
 
-<!-- Ações Rápidas -->
-<div class="admin-section">
+<!-- Ações Rápidas (esconde no mobile) -->
+<div class="admin-section hide-mobile">
     <h2 class="section-title">Ações Rápidas</h2>
     <div class="quick-actions">
         <a href="{{ url_for('admin.novo_doce') }}" class="action-card">
@@ -113,9 +113,9 @@
     </div>
 </div>
 
-<!-- Pedidos Recentes -->
+<!-- Pedidos Recentes (esconde no mobile) -->
 {% if pedidos_recentes %}
-<div class="admin-section">
+<div class="admin-section hide-mobile">
     <div class="section-header">
         <h2 class="section-title">{{ config.dashboard_pedidos_recentes_titulo or 'Pedidos Recentes' }}</h2>
         <a href="{{ url_for('admin.listar_pedidos') }}" class="btn btn-outline">
@@ -177,8 +177,8 @@
 </div>
 {% endif %}
 
-<!-- Produtos Recentes -->
-<div class="admin-section">
+<!-- Produtos Recentes (esconde no mobile) -->
+<div class="admin-section hide-mobile">
     <div class="section-header">
         <h2 class="section-title">{{ config.dashboard_produtos_recentes_titulo or 'Produtos Recentes' }}</h2>
         <a href="{{ url_for('admin.listar_doces') }}" class="btn btn-outline">
@@ -235,7 +235,6 @@
 // Atualizar estatísticas em tempo real (simulação)
 function updateStats() {
     // Aqui você poderia fazer uma requisição AJAX para buscar dados atualizados
-    // Por enquanto, apenas uma animação visual
 }
 
 // Animação dos cards de estatísticas
@@ -247,7 +246,6 @@ statCards.forEach((card, index) => {
     }, index * 100);
 });
 
-// Adicionar animação inicial
 statCards.forEach(card => {
     card.style.opacity = '0';
     card.style.transform = 'translateY(20px)';

@@ -29,7 +29,7 @@
 </div>
 
 <!-- Estatísticas Rápidas -->
-<div class="stats-grid">
+<div class="stats-grid hide-mobile">
     <div class="stat-card">
         <div class="stat-icon">
             <i class="fas fa-list"></i>
@@ -261,6 +261,13 @@
             </div>
             
             <div class="order-actions">
+                <button type="button" 
+                        class="btn btn-danger btn-sm"
+                        onclick="checkDeletePedidoPossibility('{{ pedido.id }}', '{{ pedido.numero_pedido }}')"
+                        title="Excluir Pedido">
+                    <i class="fas fa-trash"></i>
+                    Excluir
+                </button>
                 <a href="{{ url_for('admin.detalhes_pedido', pedido_id=pedido.id) }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-eye"></i>
                     Ver Detalhes
@@ -281,14 +288,6 @@
                     </form>
                 </div>
                 {% endif %}
-                
-                <button type="button" 
-                        class="btn btn-danger btn-sm"
-                        onclick="checkDeletePedidoPossibility('{{ pedido.id }}', '{{ pedido.numero_pedido }}')"
-                        title="Excluir Pedido">
-                    <i class="fas fa-trash"></i>
-                    Excluir
-                                 </button>
              </div>
          </div>
          {% endfor %}
@@ -316,6 +315,44 @@
 
 {% block extra_scripts %}
 <script>
+// Helpers de animação usando height (evita corte do último card)
+function animateExpand(el) {
+    el.style.display = 'block';
+    el.style.overflow = 'hidden';
+    el.style.height = '0px';
+    el.style.opacity = '0';
+    const target = el.scrollHeight;
+    requestAnimationFrame(() => {
+        el.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+        el.style.height = target + 'px';
+        el.style.opacity = '1';
+    });
+    const onEnd = () => {
+        el.style.transition = '';
+        el.style.height = 'auto';
+        el.style.overflow = 'visible';
+        el.removeEventListener('transitionend', onEnd);
+    };
+    el.addEventListener('transitionend', onEnd);
+}
+
+function animateCollapse(el) {
+    const current = el.scrollHeight;
+    el.style.overflow = 'hidden';
+    el.style.height = current + 'px';
+    el.style.opacity = '1';
+    requestAnimationFrame(() => {
+        el.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+        el.style.height = '0px';
+        el.style.opacity = '0';
+    });
+    const onEnd = () => {
+        el.style.transition = '';
+        el.style.display = 'none';
+        el.removeEventListener('transitionend', onEnd);
+    };
+    el.addEventListener('transitionend', onEnd);
+}
 // Auto-submit do formulário de status
 document.querySelectorAll('select[name="status"]').forEach(select => {
     select.addEventListener('change', function() {
@@ -493,13 +530,7 @@ function toggleCliente(clienteId) {
         // Expandir
         clienteSection.classList.remove('collapsed');
         clienteSection.classList.add('expanded');
-        pedidosCliente.style.display = 'block';
-        
-        // Animar a expansão
-        setTimeout(() => {
-            pedidosCliente.style.maxHeight = pedidosCliente.scrollHeight + 'px';
-            pedidosCliente.style.opacity = '1';
-        }, 10);
+        animateExpand(pedidosCliente);
         
         // Salvar estado no localStorage
         localStorage.setItem(`cliente_${clienteId}_expanded`, 'true');
@@ -508,13 +539,10 @@ function toggleCliente(clienteId) {
         setTimeout(() => updateClienteStatus(), 350);
     } else {
         // Colapsar
-        pedidosCliente.style.maxHeight = '0';
-        pedidosCliente.style.opacity = '0';
-        
+        animateCollapse(pedidosCliente);
         setTimeout(() => {
             clienteSection.classList.remove('expanded');
             clienteSection.classList.add('collapsed');
-            pedidosCliente.style.display = 'none';
         }, 300);
         
         // Salvar estado no localStorage
@@ -535,13 +563,7 @@ function expandAllClientes() {
         setTimeout(() => {
             section.classList.remove('collapsed');
             section.classList.add('expanded');
-            pedidosCliente.style.display = 'block';
-            
-            // Animar a expansão
-            setTimeout(() => {
-                pedidosCliente.style.maxHeight = pedidosCliente.scrollHeight + 'px';
-                pedidosCliente.style.opacity = '1';
-            }, 10);
+            animateExpand(pedidosCliente);
             
             localStorage.setItem(`cliente_${clienteId}_expanded`, 'true');
         }, index * 100); // Delay escalonado para efeito cascata
@@ -559,14 +581,10 @@ function collapseAllClientes() {
         const pedidosCliente = section.querySelector('.pedidos-cliente');
         
         setTimeout(() => {
-            pedidosCliente.style.maxHeight = '0';
-            pedidosCliente.style.opacity = '0';
-            
+            animateCollapse(pedidosCliente);
             setTimeout(() => {
                 section.classList.remove('expanded');
                 section.classList.add('collapsed');
-                pedidosCliente.style.display = 'none';
-                
                 localStorage.setItem(`cliente_${clienteId}_expanded`, 'false');
             }, 300);
         }, index * 50); // Delay escalonado para efeito cascata
