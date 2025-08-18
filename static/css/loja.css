@@ -901,6 +901,8 @@
     background-color: var(--color-text);
     color: var(--color-white);
     padding: var(--space-12) 0 var(--space-4);
+    bottom: 0;
+    width: 100%;
 }
 
 .footer-content {
