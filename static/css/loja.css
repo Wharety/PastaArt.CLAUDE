@@ -619,7 +619,7 @@
 
 .product-detail-image {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 4 / 4;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-medium);
 }

@@ -6,7 +6,7 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 from models import Admin, Doce, Pedido, db, KitItem
 import os
-from PIL import Image
+from PIL import Image, ImageOps
 from datetime import datetime, date, timedelta
 
 admin_bp = Blueprint('admin', __name__)
@@ -34,13 +34,32 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def resize_image(image_path, max_size=(800, 600)):
-    """Redimensionar imagem para otimizar carregamento"""
+    """Ajustar orientação EXIF (iPhone) e redimensionar para otimizar carregamento."""
     try:
         with Image.open(image_path) as img:
+            # Corrigir orientação baseada no EXIF (iPhone)
+            try:
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass
+
+            # Redimensionar mantendo proporção
             img.thumbnail(max_size, Image.Resampling.LANCZOS)
-            img.save(image_path, optimize=True, quality=85)
+
+            # Salvar preservando formato quando possível
+            lower = image_path.lower()
+            if lower.endswith(('.jpg', '.jpeg')):
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                img.save(image_path, format='JPEG', optimize=True, quality=85)
+            elif lower.endswith('.webp'):
+                img.save(image_path, format='WEBP', quality=85, method=6)
+            elif lower.endswith('.png'):
+                img.save(image_path, format='PNG', optimize=True)
+            else:
+                img.save(image_path, optimize=True)
     except Exception as e:
-        print(f"Erro ao redimensionar imagem: {e}")
+        print(f"Erro ao processar imagem (orientação/redimensionamento): {e}")
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
